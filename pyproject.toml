@@ -26,10 +26,3 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools-git-versioning]
 enabled = true
-
-[tool.setuptools-git-versioning.version]
-style = "pep440"
-pattern = "v{tag}"
-tag = "v{version}"
-distance_pattern = "dev{distance}"
-distance = "dev{distance}"
