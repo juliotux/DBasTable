@@ -1,0 +1,35 @@
+[project]
+name = "dbastable"
+dynamic = ["version"]
+description = "The easiest way to work with simple SQLite tables."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Julio Campagnolo", email = "juliocampagnolo@gmail.com" }
+]
+
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov", "coverage"]
+docs = ["sphinx", "pydata-sphinx-theme"]
+
+[project.urls]
+Homepage = "https://github.com/juliotux/dbastable"
+Issues = "https://github.com/juliotux/dbastable/issues"
+Source = "https://github.com/juliotux/dbastable"
+Documentation = "https://dbastable.readthedocs.io/en/latest/"
+
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools-git-versioning"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools-git-versioning]
+enabled = true
+
+[tool.setuptools-git-versioning.version]
+style = "pep440"
+pattern = "v{tag}"
+tag = "v{version}"
+distance_pattern = "dev{distance}"
+distance = "dev{distance}"
