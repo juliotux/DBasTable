@@ -1,3 +1,6 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# flake8: noqa: F403, F405
+
 import numpy as np
 from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase
 from astropy.table import Table
