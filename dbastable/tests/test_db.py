@@ -852,7 +852,7 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         i = hex(id(table))
 
         expect = "SQLTable 'test' in database ':memory:':"
-        expect += f"(2 columns x 10 rows)\n"
+        expect += "(2 columns x 10 rows)\n"
         expect += '\n'.join(table.as_table().__repr__().split('\n')[1:])
         self.assertIsInstance(table, SQLTable)
         self.assertEqual(repr(table), expect)
