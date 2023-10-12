@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   build:
+    name: 'Code Quality (Ruff)'
     runs-on: ubuntu-latest
     strategy:
       matrix:
