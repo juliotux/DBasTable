@@ -46,6 +46,12 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
     autocommit : bool (optional)
         Whether to commit changes to the database after each operation.
         Defaults to True.
+    logger : `~logging.Logger` (optional)
+        Logger to use. If None, a logger will be created.
+    allow_b32_colnames : bool (optional)
+        With a column name is invalid, it will be encoded in base32 and a
+        prefix will be added. This is useful to avoid invalid characters like
+        '-' in column names. If False, an error will be raised instead.
     **kwargs
         Keyword arguments to pass to the `~sqlite3.connect` function.
 
@@ -55,12 +61,13 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
     """
 
     def __init__(self, db=None, autocommit=True, logger=None,
-                 **kwargs):
+                 alow_b32_colnames=False, **kwargs):
         self._db = db
         self._con = sql.connect(self._db or ':memory:', **kwargs)
         self._cur = self._con.cursor()
         self.autocommit = autocommit
         self.logger = logger or logging.getLogger(__name__)
+        self._allow_b32_colnames = alow_b32_colnames
 
     def execute(self, command, arguments=None):
         """Execute a SQL command in the database."""
