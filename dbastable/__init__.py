@@ -8,7 +8,6 @@ except ImportError:
 
 from ._sqldb import SQLDatabase, SQLTable, SQLRow, SQLColumn
 from . import where
-from .tests import run_tests
 
 __all__ = ['SQLDatabase', 'SQLTable', 'SQLRow', 'SQLColumn',
-           'where', 'run_tests', '__version__']
+           'where', '__version__']

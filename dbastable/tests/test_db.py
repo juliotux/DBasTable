@@ -1612,7 +1612,3 @@ class TestSQLTableMapping(TestCaseWithNumpyCompare):
         self.assertEqual(table.index_of({'key a': 50}), [])
         with self.assertRaises(TypeError):
             self.assertEqual(table.index_of('"key a" < 13'), [0, 1, 2])
-
-
-def run_tests():
-    unittest.main()
