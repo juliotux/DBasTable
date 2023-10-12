@@ -1,5 +1,7 @@
 # DBasTable
 
+[![Unit Tests](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml/badge.svg)](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml)
+
 A simplier way to access SQLite tables, just like Numpy structured arrarys or Pandas dataframes.
 
 ```
