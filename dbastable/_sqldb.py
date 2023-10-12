@@ -208,7 +208,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
     def _add_data_dict(self, table, data, add_columns=False,
                        skip_sanitize=False):
         """Add data sotred in a dict to the table."""
-        data = _sanitize_colnames(data)
+        data = self._sanitize_colnames(data)
         if add_columns:
             self._add_missing_columns(table, data.keys())
 
@@ -233,7 +233,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
                              'the table.')
 
         if not skip_sanitize:
-            data = [tuple(map(_sanitize_value, d)) for d in data]
+            data = [tuple(map(self._sanitize_value, d)) for d in data]
         comm = f"INSERT INTO {table} VALUES "
         comm += f"(NULL, {', '.join(['?']*len(data[0]))})"
         comm += ';'
@@ -287,7 +287,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         if column in (_ID_KEY, 'table', 'default'):
             raise ValueError(f"{column} is a protected name.")
 
-        col = _sanitize_colnames([column])[0]
+        col = self._sanitize_colnames([column])[0]
         comm = f"ALTER TABLE {table} ADD COLUMN '{col}' ;"
         self.logger.debug('adding column "%s" to table "%s"', col, table)
         self.execute(comm)
@@ -386,14 +386,14 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         """Get an item from the table."""
         self._check_table(table)
         row = _fix_row_index(row, len(self[table]))
-        column = _sanitize_colnames([column])[0]
+        column = self._sanitize_colnames([column])[0]
         return self.get_column(table, column)[row]
 
     def set_item(self, table, column, row, value):
         """Set a value in a cell."""
         row = _fix_row_index(row, self.count(table))
-        column = _sanitize_colnames([column])[0]
-        value = _sanitize_value(value)
+        column = self._sanitize_colnames([column])[0]
+        value = self._sanitize_value(value)
         self.execute(f"UPDATE {table} SET {column}=? "
                      f"WHERE {_ID_KEY}=?;", (value, row+1))
 
@@ -415,7 +415,8 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         comm = f"UPDATE {table} SET "
         comm += f"{', '.join(f'{i}=?' for i in colnames)} "
         comm += f" WHERE {_ID_KEY}=?;"
-        self.execute(comm, tuple(list(map(_sanitize_value, data)) + [row+1]))
+        self.execute(comm,
+                     tuple(list(map(self._sanitize_value, data)) + [row+1]))
 
     def set_column(self, table, column, data):
         """Set a column in the table."""
@@ -429,11 +430,11 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
             for i in range(len(data)):
                 self.add_rows(table, {})
 
-        col = _sanitize_colnames([column])[0]
+        col = self._sanitize_colnames([column])[0]
         comm = f"UPDATE {table} SET "
         comm += f"{col}=? "
         comm += f" WHERE {_ID_KEY}=?;"
-        args = list(zip([_sanitize_value(d) for d in data],
+        args = list(zip([self._sanitize_value(d) for d in data],
                         range(1, self.count(table)+1)))
         self.executemany(comm, args)
 

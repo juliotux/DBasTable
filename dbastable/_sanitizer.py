@@ -55,7 +55,7 @@ class _SanitizerMixin:
 
         # for lists, tuples and numpy arrays, we sanitize each element
         if isinstance(data, (list, tuple, np.ndarray)):
-            [self._sanitize_key(i) for i in data]
+            return [self._sanitize_key(i) for i in data]
 
         raise TypeError(f'{type(data)} is not supported.')
 

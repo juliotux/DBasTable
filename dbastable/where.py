@@ -26,15 +26,18 @@ class Where:
 
     def __init__(self, column, op, value):
         self.column = column
+        op = op.upper()
         if op not in allowed_ops:
             raise ValueError(f"Operator {op} not allowed. Supported are: "
                              f"{', '.join(allowed_ops)}.")
         self.op = op
         value = list(np.atleast_1d(value))
-        if self.op in ['BETWEEN', 'NOT BETWEEN'] and len(value) != 2:
-            raise ValueError(f'For {op} two values must be given.')
-        elif self.op in ['IN', 'NOT IN'] and len(value) == 0:
-            raise ValueError(f'For {op} at least one value must be given.')
+        if self.op in ['BETWEEN', 'NOT BETWEEN']:
+            if len(value) != 2:
+                raise ValueError(f'For {op} two values must be given.')
+        elif self.op in ['IN', 'NOT IN']:
+            if len(value) == 0:
+                raise ValueError(f'For {op} at least one value must be given.')
         elif len(value) != 1:
             raise ValueError(f'For {op} just one value must be given')
         self.value = value
@@ -42,8 +45,11 @@ class Where:
     @property
     def to_sql(self):
         """Generate a string for the where statement."""
-        if self.op in ['BEWEEN', 'NOT BETWEEN']:
+        if self.op in ['BETWEEN', 'NOT BETWEEN']:
             return f"{self.column} {self.op} ? AND ?", self.value
+        elif self.op in ['IN', 'NOT IN']:
+            s = f"{self.column} {self.op} ({', '.join(['?']*len(self.value))})"
+            return s, self.value
         return f"{self.column} {self.op} ?", self.value
 
     def __str__(self):
