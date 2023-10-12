@@ -899,10 +899,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         db = self.db
         table = db['test']
 
-        with assert_raises(ValueError):
+        with self.assterRaises(ValueError):
             table.set_column('a', np.arange(5, 16))
 
-        with assert_raises(KeyError):
+        with self.assterRaises(KeyError):
             table.set_column('c', np.arange(5, 15))
 
     def test_table_add_row(self):
@@ -934,10 +934,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         db = self.db
         table = db['test']
 
-        with assert_raises(ValueError):
+        with self.assterRaises(ValueError):
             table.add_rows([1, 2, 3, 4])
 
-        with assert_raises(TypeError):
+        with self.assterRaises(TypeError):
             table.add_rows(2)
 
     def test_table_get_row(self):
@@ -1486,10 +1486,10 @@ class TestSQLTableMapping(TestCaseWithNumpyCompare):
     def test_table_set_column_invalid(self):
         table = self.table
 
-        with assert_raises(ValueError):
+        with self.assterRaises(ValueError):
             table.set_column('key a', np.arange(5, 16))
 
-        with assert_raises(KeyError):
+        with self.assterRaises(KeyError):
             table.set_column('key!c', np.arange(5, 15))
 
     def test_table_add_column(self):
