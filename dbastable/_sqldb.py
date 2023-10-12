@@ -1,34 +1,57 @@
+import sqlite3 as sql
+import numpy as np
+import logging
+
+from ._parse_tools import (
+    _parse_where,
+    _sanitize_colnames,
+    _sanitize_value,
+    _fix_row_index,
+    _dict2row
+)
+from ._viewers import (
+    SQLTable,
+    SQLRow,
+    SQLColumn
+)
+from ._def import _ID_KEY
+from ._broadcaster import broadcast
+
+
+__all__ = ['SQLDatabase', 'SQLTable', 'SQLRow', 'SQLColumn']
 
 
 class SQLDatabase:
     """Database creation and manipulation with SQL.
+
+    Parameters
+    ----------
+    db : str
+        The name of the database file. If ':memory:' or None is given, the
+        database will be created in memory.
+    autocommit : bool (optional)
+        Whether to commit changes to the database after each operation.
+        Defaults to True.
+    **kwargs
+        Keyword arguments to pass to the `~sqlite3.connect` function.
 
     Notes
     -----
     - '__id__' is only for internal indexing. It is ignored on returns.
     """
 
-    def __init__(self, db=':memory:', autocommit=True):
-        """Initialize the database.
-
-        Parameters
-        ----------
-        db : str
-            The name of the database file. If ':memory:' is given, the
-            database will be created in memory.
-        autocommit : bool (optional)
-            Whether to commit changes to the database after each operation.
-            Defaults to True.
-        """
+    def __init__(self, db=None, autocommit=True, logger=None,
+                 **kwargs):
         self._db = db
-        self._con = sql.connect(self._db)
+        self._con = sql.connect(self._db or ':memory:', **kwargs)
         self._cur = self._con.cursor()
         self.autocommit = autocommit
+        self.logger = logger or logging.getLogger(__name__)
 
     def execute(self, command, arguments=None):
         """Execute a SQL command in the database."""
-        logger.debug('executing sql command: "%s"',
-                     str.replace(command, '\n', ' '))
+        self.logger.debug('executing sql command: "%s"',
+                          str.replace(command, '\n', ' '))
         try:
             if arguments is None:
                 self._cur.execute(command)
@@ -45,8 +68,8 @@ class SQLDatabase:
 
     def executemany(self, command, arguments):
         """Execute a SQL command in the database."""
-        logger.debug('executing sql command: "%s"',
-                     str.replace(command, '\n', ' '))
+        self.logger.debug('executing sql command: "%s"',
+                          str.replace(command, '\n', ' '))
 
         try:
             self._cur.executemany(command, arguments)
@@ -216,7 +239,7 @@ class SQLDatabase:
 
     def add_table(self, table, columns=None, data=None):
         """Create a table in database."""
-        logger.debug('Initializing "%s" table.', table)
+        self.logger.debug('Initializing "%s" table.', table)
         if table in self.table_names:
             raise ValueError('table {table} already exists.')
 
@@ -252,7 +275,7 @@ class SQLDatabase:
 
         col = _sanitize_colnames([column])[0]
         comm = f"ALTER TABLE {table} ADD COLUMN '{col}' ;"
-        logger.debug('adding column "%s" to table "%s"', col, table)
+        self.logger.debug('adding column "%s" to table "%s"', col, table)
         self.execute(comm)
 
         # adding the data to the table
@@ -269,7 +292,8 @@ class SQLDatabase:
             raise KeyError(f'Column "{column}" does not exist.')
 
         comm = f"ALTER TABLE {table} DROP COLUMN '{column}' ;"
-        logger.debug('deleting column "%s" from table "%s"', column, table)
+        self.logger.debug('deleting column "%s" from table "%s"',
+                          column, table)
         self.execute(comm)
 
     def add_rows(self, table, data, add_columns=False, skip_sanitize=False):
@@ -301,7 +325,10 @@ class SQLDatabase:
                                            skip_sanitize=skip_sanitize)
             return self._add_data_list(table, data,
                                        skip_sanitize=skip_sanitize)
-        if isinstance(data, Table):
+
+        # support astropy tables without import it
+        if data.__class__.__name__ == 'Table' and \
+           data.__class__.__module__ == 'astropy.table.table':
             data = {c: list(data[c]) for c in data.colnames}
             return self._add_data_dict(table, data, add_columns=add_columns,
                                        skip_sanitize=skip_sanitize)

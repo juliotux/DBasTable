@@ -1,3 +1,6 @@
+import numpy as np
+
+from ._def import _ID_KEY
 
 
 class SQLTable:

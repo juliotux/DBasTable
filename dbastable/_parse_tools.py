@@ -1,4 +1,6 @@
 
+import numpy as np
+
 
 def _sanitize_colnames(data):
     """Sanitize the colnames to avoid invalid characteres like '-'."""
