@@ -2,18 +2,13 @@ import sqlite3 as sql
 import numpy as np
 import logging
 
-from ._parse_tools import (
-    _parse_where,
-    _sanitize_colnames,
-    _sanitize_value,
-    _fix_row_index,
-    _dict2row
-)
 from ._viewers import (
     SQLTable,
     SQLRow,
     SQLColumn
 )
+from ._sanitizer import _SanitizerMixin
+from .where import _WhereParserMixin
 from ._def import _ID_KEY
 from ._broadcaster import broadcast
 
@@ -21,7 +16,26 @@ from ._broadcaster import broadcast
 __all__ = ['SQLDatabase', 'SQLTable', 'SQLRow', 'SQLColumn']
 
 
-class SQLDatabase:
+def _fix_row_index(row, length):
+    """Fix the row number to be a valid index."""
+    if row < 0:
+        row += length
+    if row >= length or row < 0:
+        raise IndexError('Row index out of range.')
+    return row
+
+
+def _dict2row(cols, **row):
+    values = [None]*len(cols)
+    for i, c in enumerate(cols):
+        if c in row.keys():
+            values[i] = row[c]
+        else:
+            values[i] = None
+    return values
+
+
+class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
     """Database creation and manipulation with SQL.
 
     Parameters
@@ -91,7 +105,7 @@ class SQLDatabase:
         self._check_table(table)
         comm = "SELECT COUNT(*) FROM "
         comm += f"{table} "
-        where, args = _parse_where(where)
+        where, args = self._parse_where(where)
         if where is not None:
             comm += f"WHERE {where}"
         comm += ";"
@@ -120,20 +134,20 @@ class SQLDatabase:
         elif isinstance(columns, str):
             columns = [columns]
         # only use sanitized column names
-        columns = ', '.join(_sanitize_colnames(columns))
+        columns = ', '.join(self._sanitize_colnames(columns))
 
         comm = f"SELECT {columns} "
         comm += f"FROM {table} "
         args = []
 
-        where, args_w = _parse_where(where)
+        where, args_w = self._parse_where(where)
         if where is not None:
             comm += f"WHERE {where} "
             if args_w is not None:
                 args += args_w
 
         if order is not None:
-            order = _sanitize_colnames(order)
+            order = self._sanitize_colnames(order)
             comm += f"ORDER BY {order} ASC "
 
         if limit is not None:
