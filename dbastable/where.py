@@ -68,7 +68,7 @@ class Where:
 class _WhereParserMixin:
     """Mixin to handle the where statement parsing in the SQLDatabase."""
 
-    def _parse_where(self, where):
+    def _parse_where(self, table, where):
         # None where have None statement and None arguments
         if where is None:
             return None, None
@@ -79,7 +79,7 @@ class _WhereParserMixin:
         def _parse_token(key, value):
             # Parse a simgle token and return the where statement with argument
             # check if column exists
-            col = self.get_column_name(key)
+            col = self._get_column_name(table, key)
             # if the where is a _BaseWhere instance, just return the sql str
             if isinstance(value, Where):
                 w, a = value.to_sql
@@ -91,7 +91,10 @@ class _WhereParserMixin:
             _where.append(w)  # append the where statement
             args.extend(a)  # as a is returned as a list, add it
 
-        if isinstance(where, dict):
+        if isinstance(where, Where):
+            _parse_token(where.column, where)
+
+        elif isinstance(where, dict):
             where = self._sanitize_colnames(where)
             for k, v in where.items():
                 _parse_token(k, v)

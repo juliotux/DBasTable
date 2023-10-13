@@ -114,7 +114,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         self._check_table(table)
         comm = "SELECT COUNT(*) FROM "
         comm += f"{table} "
-        where, args = self._parse_where(where)
+        where, args = self._parse_where(table, where)
         if where is not None:
             comm += f"WHERE {where}"
         comm += ";"
@@ -149,7 +149,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         comm += f"FROM {table} "
         args = []
 
-        where, args_w = self._parse_where(where)
+        where, args_w = self._parse_where(table, where)
         if where is not None:
             comm += f"WHERE {where} "
             if args_w is not None:

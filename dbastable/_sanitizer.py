@@ -87,14 +87,14 @@ class _SanitizerMixin:
 
         raise TypeError(f'{type(data)} is not supported.')
 
-    def get_column_name(self, column):
-        """Get the column name from the database."""
+    def _get_column_name(self, table, column):
+        """Get the real column name from the database."""
         if column.casefold() == _ID_KEY:
             return column.casefold()  # id key is already sanitized
 
         # get the sanitized column name
         col = self._sanitize_colnames(column)
         # if the column is not in the database, raise an error
-        if col not in self.column_names:
+        if col not in self.column_names(table):
             raise ValueError(f'Column {column} not found in the database.')
         return col

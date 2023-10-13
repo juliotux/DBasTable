@@ -1,5 +1,14 @@
 import unittest
-from dbastable.where import Where
+from dbastable.where import Where, _WhereParserMixin
+from dbastable._sanitizer import _SanitizerMixin
+from dbastable import SQLDatabase
+
+from dbastable.tests.mixins import TestCaseWithNumpyCompare
+
+
+class _WhereParser(_WhereParserMixin, _SanitizerMixin):
+    def column_names(self, table):
+        return ['a', 'b', 'c']
 
 
 class TestWhere(unittest.TestCase):
@@ -146,3 +155,36 @@ class TestWhere(unittest.TestCase):
             Where('a', 'not between', [1, 2, 3])
         with self.assertRaises(ValueError):
             Where('a', 'not between', [])
+
+
+class TestParseWhere(unittest.TestCase):
+    def test_parse_where_none(self):
+        w = _WhereParser()
+        self.assertEqual(w._parse_where(None), (None, None))
+
+    def test_parse_where_single(self):
+        w = _WhereParser()
+        self.assertEqual(w._parse_where({'a': 1}), ('a = ?', [1]))
+
+    def test_parse_where_single_error(self):
+        w = _WhereParser()
+        with self.assertRaises(TypeError):
+            w._parse_where({'a': [1, 2]})
+        with self.assertRaises(TypeError):
+            w._parse_where({'a': []})
+
+    def test_parse_where_single_where(self):
+        w = _WhereParser()
+        self.assertEqual(w._parse_where(Where('a', '=', 1)),
+                         ('a = ?', [1]))
+
+
+class TestWhereSelect(TestCaseWithNumpyCompare):
+    def test_select_where_none(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', columns=['a'], where=None)
+        self.assertEqualArray(sel, [[1], [2], [3], [4], [5]])
