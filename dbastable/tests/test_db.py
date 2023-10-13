@@ -606,8 +606,8 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         self.assertEqual(db.count('test', where=[Where('a', '>', 15),
                                                  Where('b', '<', 27)]), 1)
 
-    @unittest.skipUnless(sys.platform.startswith("win"),
-                         "problems with temp_path")
+    @unittest.skipIf(sys.platform.startswith("win"),
+                     "problems with temp_path")
     def test_sql_prop_db(self):
         db = SQLDatabase(':memory:')
         self.assertEqual(db.db, ':memory:')
