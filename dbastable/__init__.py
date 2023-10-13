@@ -7,7 +7,8 @@ except ImportError:
     __version__ = ''
 
 from ._sqldb import SQLDatabase, SQLTable, SQLRow, SQLColumn
+from ._def import _ID_KEY
 from .where import Where
 
 __all__ = ['SQLDatabase', 'SQLTable', 'SQLRow', 'SQLColumn',
-           'Where', '__version__']
+           'Where', '__version__', '_ID_KEY']
