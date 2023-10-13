@@ -9,9 +9,11 @@ class _Sanitizer(_SanitizerMixin):
     def __init__(self, allow_b32_colnames=False):
         self._allow_b32_colnames = allow_b32_colnames
 
-    def column_names(self, table):
-        return ['test1', 'test2',
-                '__b32__ORSXG5BNGI']  # 'test-2'
+    def column_names(self, table, do_not_decode=False):
+        if do_not_decode:
+            return ['test1', 'test2',
+                    '__b32__ORSXG5BNGI']  # 'test-2'
+        return ['test1', 'test2', 'test-2']
 
 
 class TestSanitizeColnames(TestCaseWithNumpyCompare):
