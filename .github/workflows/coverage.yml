@@ -9,7 +9,7 @@ on:
     - cron: 0 7 * * 1  # 7 A.M. mon
 
 concurrency:
-  group: unittests-${{ github.ref }}
+  group: coverage-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
