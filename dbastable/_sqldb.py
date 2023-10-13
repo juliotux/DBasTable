@@ -71,7 +71,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         self.logger = logger or logging.getLogger(__name__)
         self._allow_b32_colnames = alow_b32_colnames
         # self._con.set_trace_callback(self.logger.debug)
-        self._con.set_trace_callback(print)
+        # self._con.set_trace_callback(print)
 
     def execute(self, command, arguments=None):
         """Execute a SQL command in the database."""
