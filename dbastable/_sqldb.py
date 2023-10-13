@@ -142,7 +142,7 @@ class _RowAccessorMixin:
         colnames = self.column_names(table)
 
         if isinstance(data, dict):
-            data = self._dict2row(colnames, **data)
+            data = self._dict2row(colnames, data)
         elif isinstance(data, (list, tuple, np.ndarray)):
             if len(data) != len(colnames):
                 raise ValueError('data must have the same length as the '
