@@ -82,7 +82,9 @@ class _WhereParserMixin:
             col = self._get_column_name(table, key)
             # if the where is a _BaseWhere instance, just return the sql str
             if isinstance(value, Where):
-                w, a = value.to_sql
+                # use the parsed column name
+                nw = Where(col, value.op, value.value)
+                w, a = nw.to_sql
             # if is a value, assume it to be equal
             else:
                 value = self._sanitize_value(value)

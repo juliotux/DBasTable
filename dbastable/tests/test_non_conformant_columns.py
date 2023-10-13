@@ -99,3 +99,20 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         self.assertEqual(r['tEst!1 '].values, [1, 2, 3])
         self.assertEqual(r['tesT@ 2'].values, [4, 5, 6])
 
+    def test_column_where(self):
+        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db.add_table('test')
+        db.add_column('test', 'test!1 ', data=[1, 2, 3])
+        db.add_column('test', 'test@ 2', data=[4, 5, 6])
+
+        sel = db.select('test', where=Where('test!1 ', '>', 1))
+        self.assertEqual(sel, [(2, 5), (3, 6)])
+
+    def test_column_where_dict(self):
+        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db.add_table('test')
+        db.add_column('test', 'test!1 ', data=[1, 2, 3])
+        db.add_column('test', 'test@ 2', data=[4, 5, 6])
+
+        sel = db.select('test', where={'test!1 ': 2})
+        self.assertEqual(sel, [(2, 5)])
