@@ -1,7 +1,7 @@
 import numpy as np
 import base64
 
-from ._def import _B32_COL_PREFIX
+from ._def import _B32_COL_PREFIX, _ID_KEY
 
 
 def _colname_to_b32_decode(string):
@@ -19,6 +19,7 @@ class _SanitizerMixin:
 
     def _encode_b32(self, key):
         """Encode a key in base32."""
+        key = key.casefold()
         # encode to base32 and remove the padding
         b = base64.b32encode(key.encode('utf-8')).decode('utf-8')
         b = b.strip('=')
@@ -32,6 +33,9 @@ class _SanitizerMixin:
 
     def _sanitize_key(self, key):
         """Sanitize a single key to avoid sql errors."""
+        # TODO: check for protected names
+        if key.startswith(_B32_COL_PREFIX) or key == _ID_KEY:
+            raise ValueError(f'{key} uses a protected name.')
         if len([ch for ch in key if not ch.isalnum() and ch != '_']) != 0:
             # if a name is invalid, encode it in base32 and add a prefix
             # if it is allowed
@@ -82,3 +86,12 @@ class _SanitizerMixin:
             return bool(data)
 
         raise TypeError(f'{type(data)} is not supported.')
+
+    def get_column_name(self, column):
+        """Get the column name from the database."""
+        # get the sanitized column name
+        col = self._sanitize_colnames(column)
+        # if the column is not in the database, raise an error
+        if col not in self.columns:
+            raise ValueError(f'Column {column} not found in the database.')
+        return col
