@@ -163,7 +163,7 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         a = table.as_table()
         self.assertIsInstance(a, Table)
         self.assertEqual(a.colnames, [])
-        self.assertEqual(a, Table())
+        self.assertEqual(len(a), 0)
 
     def test_table_len(self):
         db = self.db
@@ -553,7 +553,7 @@ class TestSQLColumn(TestCaseWithNumpyCompare):
 
         self.assertEqual(column.name, 'a')
         self.assertEqual(column.table, 'test')
-        self.assertEqual(column.values, np.arange(10, 20))
+        self.assertEqualArray(column.values, np.arange(10, 20))
 
     def test_column_len(self):
         db = self.db
@@ -638,10 +638,10 @@ class TestSQLColumn(TestCaseWithNumpyCompare):
         column = table['a']
 
         column[0] = 5
-        self.assertEqual(db.get_row('test', 0).values, [5, 20])
+        self.assertEqualArray(db.get_row('test', 0).values, [5, 20])
 
         column[-1] = -1
-        self.assertEqual(db.get_row('test', -1).values, [-1, 29])
+        self.assertEqualArray(db.get_row('test', -1).values, [-1, 29])
 
     def test_column_setitem_list_slice(self):
         db = self.db

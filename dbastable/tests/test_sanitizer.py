@@ -8,8 +8,10 @@ from dbastable.tests.mixins import TestCaseWithNumpyCompare
 class _Sanitizer(_SanitizerMixin):
     def __init__(self, allow_b32_colnames=False):
         self._allow_b32_colnames = allow_b32_colnames
-        self.column_names = ['test1', 'test2',
-                             '__b32__ORSXG5BNGI']  # 'test-2'
+
+    def column_names(self, table):
+        return ['test1', 'test2',
+                '__b32__ORSXG5BNGI']  # 'test-2'
 
 
 class TestSanitizeColnames(TestCaseWithNumpyCompare):
@@ -98,33 +100,33 @@ class TestSanitizeColnamesB32(TestCaseWithNumpyCompare):
 class TestSanitizeGetColumnName(TestCaseWithNumpyCompare):
     def test_get_column_name(self):
         s = _Sanitizer(False)
-        self.assertEqual(s.get_column_name('test1'), 'test1')
-        self.assertEqual(s.get_column_name('test2'), 'test2')
+        self.assertEqual(s._get_column_name('table', 'test1'), 'test1')
+        self.assertEqual(s._get_column_name('table','test2'), 'test2')
 
     def test_get_column_name_invalid(self):
         s = _Sanitizer(False)
         with self.assertRaisesRegex(ValueError, 'Invalid'):
-            s.get_column_name('test-2')
+            s._get_column_name('table', 'test-2')
         with self.assertRaisesRegex(ValueError, 'protected'):
-            s.get_column_name('__b32__ORSXG5BNGI')
+            s._get_column_name('table', '__b32__ORSXG5BNGI')
 
     def test_get_column_name_not_in_database(self):
         s = _Sanitizer(False)
         with self.assertRaisesRegex(ValueError, 'not found'):
-            s.get_column_name('test3')
+            s._get_column_name('table', 'test3')
 
     def test_get_column_name_b32(self):
         s = _Sanitizer(True)
-        self.assertEqual(s.get_column_name('test1'), 'test1')
-        self.assertEqual(s.get_column_name('test2'), 'test2')
-        self.assertEqual(s.get_column_name('test-2'), '__b32__ORSXG5BNGI')
+        self.assertEqual(s._get_column_name('table', 'test1'), 'test1')
+        self.assertEqual(s._get_column_name('table', 'test2'), 'test2')
+        self.assertEqual(s._get_column_name('table', 'test-2'), '__b32__ORSXG5BNGI')
 
     def test_get_column_name_b32_not_in_database(self):
         s = _Sanitizer(True)
         with self.assertRaisesRegex(ValueError, 'not found'):
-            s.get_column_name('test!2')
+            s._get_column_name('table', 'test!2')
 
     def test_get_column_name_id(self):
         s = _Sanitizer(False)
-        self.assertEqual(s.get_column_name('__id__'), '__id__')
-        self.assertEqual(s.get_column_name('__ID__'), '__id__')
+        self.assertEqual(s._get_column_name('table', '__id__'), '__id__')
+        self.assertEqual(s._get_column_name('table', '__ID__'), '__id__')

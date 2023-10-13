@@ -70,6 +70,8 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         self.autocommit = autocommit
         self.logger = logger or logging.getLogger(__name__)
         self._allow_b32_colnames = alow_b32_colnames
+        # self._con.set_trace_callback(self.logger.debug)
+        self._con.set_trace_callback(print)
 
     def execute(self, command, arguments=None):
         """Execute a SQL command in the database."""
@@ -152,17 +154,20 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         where, args_w = self._parse_where(table, where)
         if where is not None:
             comm += f"WHERE {where} "
-            if args_w is not None:
-                args += args_w
+            # values need to be sanitized
+            args += args_w
 
         if order is not None:
-            order = self._sanitize_colnames(order)
-            comm += f"ORDER BY {order} ASC "
+            order = np.atleast_1d(order)
+            # only operates on real column names
+            order = [self._get_column_name(table, o) for o in order]
+            comm += f"ORDER BY {', '.join(order)} ASC "
 
         if limit is not None:
             comm += "LIMIT ? "
             if not isinstance(limit, (int, np.integer)):
                 raise TypeError('limit must be an integer.')
+            # force integer
             args.append(int(limit))
         if offset is not None:
             if limit is None:
@@ -170,6 +175,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
             if not isinstance(offset, (int, np.integer)):
                 raise TypeError('offset must be an integer.')
             comm += "OFFSET ? "
+            # force integer
             args.append(int(offset))
 
         comm = comm + ';'
@@ -373,16 +379,16 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
         comm = f"DROP TABLE {table};"
         self.execute(comm)
 
-    def get_table(self, table, column_map=None):
+    def get_table(self, table):
         """Get a table from the database."""
         self._check_table(table)
-        return SQLTable(self, table, colmap=column_map)
+        return SQLTable(self, table)
 
-    def get_row(self, table, index, column_map=None):
+    def get_row(self, table, index):
         """Get a row from the table."""
         self._check_table(table)
         index = _fix_row_index(index, len(self[table]))
-        return SQLRow(self, table, index, colmap=column_map)
+        return SQLRow(self, table, index)
 
     def get_column(self, table, column):
         """Get a column from the table."""

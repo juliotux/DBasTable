@@ -101,15 +101,12 @@ class _WhereParserMixin:
 
         elif isinstance(where, (list, tuple)):
             for w in where:
-                if not isinstance(w, tuple):
+                if not isinstance(w, Where):
                     raise TypeError('if where is a list, it must be a list '
-                                    f'of tuples. Not {type(w)}.')
-                if len(w) != 2:
-                    raise ValueError('if where is a list, it must be a list '
-                                     'of tuples in the form (key, value).')
-                _parse_token(*w)
+                                    f'of Where instances. Not {type(w)}.')
+                _parse_token(w.column, w)
 
         elif where is not None:
             raise TypeError(f'{type(where)} not supported for where.')
 
-        return ' AND '.join(_where), args
+        return ' AND '.join(_where), [self._sanitize_value(a) for a in args]

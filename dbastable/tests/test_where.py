@@ -160,22 +160,22 @@ class TestWhere(unittest.TestCase):
 class TestParseWhere(unittest.TestCase):
     def test_parse_where_none(self):
         w = _WhereParser()
-        self.assertEqual(w._parse_where(None), (None, None))
+        self.assertEqual(w._parse_where('table', None), (None, None))
 
     def test_parse_where_single(self):
         w = _WhereParser()
-        self.assertEqual(w._parse_where({'a': 1}), ('a = ?', [1]))
+        self.assertEqual(w._parse_where('table', {'a': 1}), ('a = ?', [1]))
 
     def test_parse_where_single_error(self):
         w = _WhereParser()
         with self.assertRaises(TypeError):
-            w._parse_where({'a': [1, 2]})
+            w._parse_where('table', {'a': [1, 2]})
         with self.assertRaises(TypeError):
-            w._parse_where({'a': []})
+            w._parse_where('table', {'a': []})
 
     def test_parse_where_single_where(self):
         w = _WhereParser()
-        self.assertEqual(w._parse_where(Where('a', '=', 1)),
+        self.assertEqual(w._parse_where('table', Where('a', '=', 1)),
                          ('a = ?', [1]))
 
 
@@ -188,3 +188,129 @@ class TestWhereSelect(TestCaseWithNumpyCompare):
 
         sel = db.select('test', columns=['a'], where=None)
         self.assertEqualArray(sel, [[1], [2], [3], [4], [5]])
+
+    def test_select_where_equal_dict_single_value(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', where={'a': 1})
+        self.assertEqualArray(sel, [[1, 'a']])
+
+    def test_select_where_equal_dict_multiple_values(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 1, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', where={'a': 1, 'b': 'a'})
+        self.assertEqualArray(sel, [[1, 'a']])
+
+    def test_select_where_single_equal_dict_where(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', where={'a': Where('a', '=', 1)})
+        self.assertEqualArray(sel, [[1, 'a']])
+
+    def test_select_where_single_equal(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', where=Where('a', '=', 1))
+        self.assertEqualArray(sel, [[1, 'a']])
+
+    def test_select_where_single_greater_than(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', where=Where('a', '>', 3))
+        self.assertEqualArray(sel, [[4, 'd'], [5, 'e']])
+
+    def test_select_where_single_greater_than_or_equal(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', where=Where('a', '>=', 3))
+        self.assertEqualArray(sel, [[3, 'c'], [4, 'd'], [5, 'e']])
+
+    def test_select_where_single_less_than(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', where=Where('a', '<', 3))
+        self.assertEqualArray(sel, [[1, 'a'], [2, 'b']])
+
+    def test_select_where_single_less_than_or_equal(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', ['a', 'b', 'c', 'd', 'e'])
+
+        sel = db.select('test', where=Where('a', '<=', 3))
+        self.assertEqualArray(sel, [[1, 'a'], [2, 'b'], [3, 'c']])
+
+    def test_select_where_single_like(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', ['a', 'ab', 'abc', 'abcd', 'abcde'])
+        db.add_column('test', 'b', [1, 2, 3, 4, 5])
+
+        sel = db.select('test', where=Where('a', 'like', 'ab'))
+        self.assertEqualArray(sel, [['ab', 2]])
+
+    def test_select_where_single_in(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', ['a', 'ab', 'abc', 'abcd', 'abcde'])
+        db.add_column('test', 'b', [1, 2, 3, 4, 5])
+
+        sel = db.select('test', where=Where('a', 'in', ['ab', 'abc']))
+        self.assertEqualArray(sel, [['ab', 2], ['abc', 3]])
+
+    def test_select_where_single_not_in(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', ['a', 'ab', 'abc', 'abcd', 'abcde'])
+        db.add_column('test', 'b', [1, 2, 3, 4, 5])
+
+        sel = db.select('test', where=Where('a', 'not in', ['ab', 'abc']))
+        self.assertEqualArray(sel, [['a', 1], ['abcd', 4], ['abcde', 5]])
+
+    def test_select_where_single_is(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [None, None, 3, 4, 5])
+        db.add_column('test', 'b', [1, 2, 3, 4, 5])
+
+        sel = db.select('test', where=Where('a', 'is', None))
+        self.assertEqualArray(sel, [[None, 1], [None, 2]])
+
+    def test_select_where_single_is_not(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [None, None, 3, 4, 5])
+        db.add_column('test', 'b', [1, 2, 3, 4, 5])
+
+        sel = db.select('test', where=Where('a', 'is not', None))
+        self.assertEqualArray(sel, [[3, 3], [4, 4], [5, 5]])
+
+    def test_select_where_single_between(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', [1, 2, 3, 4, 5])
+        db.add_column('test', 'b', [1, 2, 3, 4, 5])
+
+        sel = db.select('test', where=Where('b', 'between', [2, 4]))
+        self.assertEqualArray(sel, [[2, 2], [3, 3], [4, 4]])

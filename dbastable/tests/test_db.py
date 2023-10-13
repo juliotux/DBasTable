@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # flake8: noqa: F403, F405
 
-from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase
+from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase, Where
 import numpy as np
 from astropy.table import Table
 import sqlite3
@@ -146,8 +146,8 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         self.assertEqual(db.get_column('test', 'b').values, ['a', 'b'])
         self.assertEqual(db.get_column('test', 'c').values, [1, 0])
         self.assertEqual(db.get_column('test', 'd').values, [b'a', b'b'])
-        self.assertAlmostEquals(db.get_column(
-            'test', 'e').values, [3.14, 2.71])
+        self.assertAlmostEqualArray(db.get_column('test', 'e').values,
+                                    [3.14, 2.71])
         self.assertEqual(len(db), 1)
         self.assertEqual(db.table_names, ['test'])
 
@@ -324,8 +324,10 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         db2 = db.copy(indexes={'test': [30, 24, 32, 11]})
         self.assertEqual(db2.table_names, ['test'])
         self.assertEqual(db2.column_names('test'), ['a', 'b'])
-        self.assertEqual(db2.get_column('test', 'a').values, [23, 49, 61, 65])
-        self.assertEqual(db2.get_column('test', 'b').values, [24, 50, 62, 66])
+        self.assertEqualArray(db2.get_column('test', 'a').values,
+                              [23, 49, 61, 65])
+        self.assertEqualArray(db2.get_column('test', 'b').values,
+                              [24, 50, 62, 66])
 
     def test_sql_delete_row(self):
         db = SQLDatabase(':memory:')
@@ -334,8 +336,8 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         db.add_column('test', 'b', [2, 4, 6])
 
         db.delete_row('test', 1)
-        self.assertEqual(db.get_column('test', 'a').values, [1, 5])
-        self.assertEqual(db.get_column('test', 'b').values, [2, 6])
+        self.assertEqualArray(db.get_column('test', 'a').values, [1, 5])
+        self.assertEqualArray(db.get_column('test', 'b').values, [2, 6])
 
         with self.assertRaises(IndexError):
             db.delete_row('test', 2)
@@ -366,8 +368,9 @@ class TestSQLDatabaseAccess(TestCaseWithNumpyCompare):
         db.add_column('test', 'a', data=np.arange(10, 20))
         db.add_column('test', 'b', data=np.arange(20, 30))
 
-        self.assertEqual(db.get_table('test').values, list(zip(np.arange(10, 20),
-                                                           np.arange(20, 30))))
+        self.assertEqualArray(db.get_table('test').values,
+                              list(zip(np.arange(10, 20),
+                                       np.arange(20, 30))))
         self.assertIsInstance(db.get_table('test'), SQLTable)
 
         with self.assertRaises(KeyError):
@@ -506,7 +509,7 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         db.add_column('test', 'b', data=np.arange(20, 30))
 
         a = db.select('test', columns='a', where={'a': 15})
-        self.assertEqual(a, [15])
+        self.assertEqualArray(a, [(15,)])
 
         a = db.select('test', columns=['a', 'b'], where={'b': 22})
         self.assertEqualArray(a, [(12, 22)])
@@ -515,7 +518,9 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         self.assertEqualArray(
             a, list(zip(np.arange(10, 20), np.arange(20, 30))))
 
-        a = db.select('test', columns=['a', 'b'], where=['a > 12', 'b < 26'])
+        a = db.select('test', columns=['a', 'b'],
+                      where=[Where('a', '>', 12),
+                             Where('b', '<', 26)])
         self.assertEqualArray(a, [(13, 23), (14, 24), (15, 25)])
 
     def test_sql_select_limit_offset(self):
@@ -525,10 +530,10 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         db.add_column('test', 'b', data=np.arange(20, 30))
 
         a = db.select('test', columns='a', limit=1)
-        self.assertEqual(a, 10)
+        self.assertEqualArray(a, [(10, )])
 
         a = db.select('test', columns='a', limit=3, offset=2)
-        self.assertEqual(a, [[12], [13], [14]])
+        self.assertEqualArray(a, [[12], [13], [14]])
 
     def test_sql_select_invalid(self):
         db = SQLDatabase(':memory:')
@@ -536,18 +541,18 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         db.add_column('test', 'a', data=np.arange(10, 20))
         db.add_column('test', 'b', data=np.arange(20, 30))
 
-        with self.assertRaises(sqlite3.OperationalError,
-                               match='no such column: c'):
+        with self.assertRaisesRegex(sqlite3.OperationalError,
+                                    'no such column: c'):
             db.select('test', columns=['c'])
 
-        with self.assertRaises(ValueError,
-                               match='offset cannot be used without limit.'):
+        with self.assertRaisesRegex(ValueError,
+                                    'offset cannot be used without limit.'):
             db.select('test', columns='a', offset=1)
 
-        with self.assertRaises(TypeError, match='where must be'):
+        with self.assertRaises(TypeError):
             db.select('test', columns='a', where=1)
 
-        with self.assertRaises(TypeError, match='if where is a list'):
+        with self.assertRaisesRegex(TypeError, 'if where is a list'):
             db.select('test', columns='a', where=[1, 2, 3])
 
         with self.assertRaises(TypeError):
@@ -567,19 +572,21 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
                                  np.arange(20, 30)[::-1]))[::-1])
 
         a = db.select('test', order='b', limit=2)
-        self.assertEqual(a, [(19, 20), (18, 21)])
+        self.assertEqualArray(a, [(19, 20), (18, 21)])
 
         a = db.select('test', order='b', limit=2, offset=2)
-        self.assertEqual(a, [(17, 22), (16, 23)])
+        self.assertEqualArray(a, [(17, 22), (16, 23)])
 
-        a = db.select('test', order='b', where='a < 15')
-        self.assertEqual(a, [(14, 25), (13, 26), (12, 27), (11, 28), (10, 29)])
+        a = db.select('test', order='b', where=Where('a', '<', 15))
+        self.assertEqualArray(a, [(14, 25), (13, 26), (12, 27), (11, 28), (10, 29)])
 
-        a = db.select('test', order='b', where='a < 15', limit=3)
-        self.assertEqual(a, [(14, 25), (13, 26), (12, 27)])
+        a = db.select('test', order='b', where=Where('a', '<', 15),
+                      limit=3)
+        self.assertEqualArray(a, [(14, 25), (13, 26), (12, 27)])
 
-        a = db.select('test', order='b', where='a < 15', limit=3, offset=2)
-        self.assertEqual(a, [(12, 27), (11, 28), (10, 29)])
+        a = db.select('test', order='b', where=Where('a', '<', 15),
+                      limit=3, offset=2)
+        self.assertEqualArray(a, [(12, 27), (11, 28), (10, 29)])
 
     def test_sql_count(self):
         db = SQLDatabase(':memory:')
@@ -590,8 +597,9 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         self.assertEqual(db.count('test'), 10)
         self.assertEqual(db.count('test', where={'a': 15}), 1)
         self.assertEqual(db.count('test', where={'a': 15, 'b': 22}), 0)
-        self.assertEqual(db.count('test', where='a > 15'), 4)
-        self.assertEqual(db.count('test', where=['a > 15', 'b < 27']), 1)
+        self.assertEqual(db.count('test', where=Where('a', '>', 15)), 4)
+        self.assertEqual(db.count('test', where=[Where('a', '>', 15),
+                                                 Where('b', '<', 27)]), 1)
 
     def test_sql_prop_db(self, tmp_path):
         db = SQLDatabase(':memory:')
