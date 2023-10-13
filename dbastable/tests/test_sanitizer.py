@@ -39,7 +39,6 @@ class TestSanitizeColnames(TestCaseWithNumpyCompare):
             s._sanitize_colnames(i)
 
         i = ['test', 'test_1', 'test_1_2', 'test_1_2', 'Test', 'Test_1']
-        sanit = s._sanitize_colnames(i)
         self.assertEqual(s._sanitize_colnames(i), [k.lower() for k in i])
 
     def test_sanitize_dict(self):
@@ -74,13 +73,12 @@ class TestSanitizeColnamesB32(TestCaseWithNumpyCompare):
 
     def test_sanitize_list(self):
         s = _Sanitizer(True)
-        l = ['test-2', 'test!2', 'test@2', 'test#2', 'test$2']
+        names = ['test-2', 'test!2', 'test@2', 'test#2', 'test$2']
         v = ['__b32__ORSXG5BNGI', '__b32__ORSXG5BBGI', '__b32__ORSXG5CAGI',
              '__b32__ORSXG5BDGI', '__b32__ORSXG5BEGI']
-        self.assertEqual(s._sanitize_colnames(l), v)
+        self.assertEqual(s._sanitize_colnames(names), v)
 
         i = ['test', 'test_1', 'test_1_2', 'test_1_2', 'Test', 'Test_1']
-        sanit = s._sanitize_colnames(i)
         self.assertEqual(s._sanitize_colnames(i), [k.lower() for k in i])
 
     def test_sanitize_dict(self):
