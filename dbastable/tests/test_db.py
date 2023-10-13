@@ -7,6 +7,7 @@ from astropy.table import Table
 import tempfile
 import sys
 import unittest
+import os
 
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
 
@@ -612,10 +613,12 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         db = SQLDatabase(':memory:')
         self.assertEqual(db.db, ':memory:')
 
-        tmp_path = tempfile.TemporaryFile(suffix='_test.db')
-        db = SQLDatabase(str(tmp_path))
-        self.assertEqual(db.db, str(tmp_path))
-        tmp_path.close()
+        tmp_path = tempfile.mkdtemp()
+        path = os.path.join(tmp_path, 'test.db')
+        db = SQLDatabase(path)
+        self.assertEqual(db.db, path)
+        os.remove(path)
+        os.removedirs(tmp_path)
 
     def test_sql_prop_table_names(self):
         db = SQLDatabase(':memory:')
