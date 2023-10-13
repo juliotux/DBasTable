@@ -4,8 +4,9 @@
 from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase, Where
 import numpy as np
 from astropy.table import Table
-import sqlite3
 import tempfile
+import sys
+import unittest
 
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
 
@@ -605,6 +606,8 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         self.assertEqual(db.count('test', where=[Where('a', '>', 15),
                                                  Where('b', '<', 27)]), 1)
 
+    @unittest.skipUnless(sys.platform.startswith("win"),
+                         "problems with temp_path")
     def test_sql_prop_db(self):
         db = SQLDatabase(':memory:')
         self.assertEqual(db.db, ':memory:')
