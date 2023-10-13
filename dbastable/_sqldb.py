@@ -18,6 +18,15 @@ __all__ = ['SQLDatabase', 'SQLTable', 'SQLRow', 'SQLColumn']
 
 class _RowAccessorMixin:
     """Access and manipulate rows."""
+    def _add_missing_columns(self, table, columns):
+        """Add missing columns to the table."""
+        existing = set(self.column_names(table,
+                                         do_not_decode=True))
+
+        for col in [i for i in columns
+                    if self._sanitize_colnames(i) not in existing]:
+            self.add_column(table, col)
+
     @staticmethod
     def _fix_row_index(row, length):
         """Fix the row number to be a valid index."""
@@ -28,7 +37,7 @@ class _RowAccessorMixin:
         return row
 
     @staticmethod
-    def _dict2row(cols, **row):
+    def _dict2row(cols, row):
         values = [None]*len(cols)
         for i, c in enumerate(cols):
             if c in row.keys():
@@ -44,11 +53,13 @@ class _RowAccessorMixin:
         if add_columns:
             self._add_missing_columns(table, data.keys())
 
-        dict_row_list = self._dict2row(cols=self.column_names(table), **data)
+        row_list = self._dict2row(cols=self.column_names(table,
+                                                         do_not_decode=True),
+                                  row=data)
         try:
-            rows = np.broadcast(*dict_row_list)
+            rows = np.broadcast(*row_list)
         except ValueError:
-            rows = broadcast(*dict_row_list)
+            rows = broadcast(*row_list)
         rows = list(zip(*rows.iters))
         self._add_data_list(table, rows, skip_sanitize=skip_sanitize)
 
@@ -149,12 +160,6 @@ class _RowAccessorMixin:
 
 class _ColumnAccessorMixin:
     """Access and manipulate columns."""
-
-    def _add_missing_columns(self, table, columns):
-        """Add missing columns to the table."""
-        existing = set(self.column_names(table))
-        for col in [i for i in columns if i not in existing]:
-            self.add_column(table, col)
 
     def add_column(self, table, column, data=None):
         """Add a column to a table."""

@@ -116,3 +116,18 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
 
         sel = db.select('test', where={'test!1 ': 2})
         self.assertEqual(sel, [(2, 5)])
+
+    def test_add_row_dict(self):
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
+        db.add_table('test')
+        db.add_column('test', 'test!1 ', data=[1, 2, 3])
+        db.add_column('test', 'test@ 2', data=[4, 5, 6])
+
+        db.add_rows('test', {'test!1 ': 4, 'test@ 2': 7})
+        self.assertEqual(db['test']['test!1 '].values, [1, 2, 3, 4])
+        self.assertEqual(db['test']['test@ 2'].values, [4, 5, 6, 7])
+
+        # also case insensitive
+        db.add_rows('test', {'TEST!1 ': 5, 'TEST@ 2': 8})
+        self.assertEqual(db['test']['test!1 '].values, [1, 2, 3, 4, 5])
+        self.assertEqual(db['test']['test@ 2'].values, [4, 5, 6, 7, 8])
