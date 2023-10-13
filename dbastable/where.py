@@ -95,7 +95,7 @@ class _WhereParserMixin:
             _parse_token(where.column, where)
 
         elif isinstance(where, dict):
-            where = self._sanitize_colnames(where)
+            # no need for key sanitization. It goes into _parse_token
             for k, v in where.items():
                 _parse_token(k, v)
 

@@ -5,6 +5,7 @@ from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase, Where
 import numpy as np
 from astropy.table import Table
 import sqlite3
+import tempfile
 
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
 
@@ -316,18 +317,21 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         self.assertEqual(db2.get_column('test', 'b').values, [2, 4, 6])
 
     def test_sql_copy_indexes(self):
+        arr_a = np.arange(1, 101, 2)
+        arr_b = np.arange(2, 102, 2)[::-1]
         db = SQLDatabase(':memory:')
         db.add_table('test')
-        db.add_column('test', 'a', np.arange(1, 101, 2))
-        db.add_column('test', 'b', np.arange(2, 102, 2))
+        db.add_column('test', 'a', arr_a)
+        db.add_column('test', 'b', arr_b)
 
-        db2 = db.copy(indexes={'test': [30, 24, 32, 11]})
+        indx = [30, 24, 32, 11]
+        db2 = db.copy(indexes={'test': indx})
         self.assertEqual(db2.table_names, ['test'])
         self.assertEqual(db2.column_names('test'), ['a', 'b'])
         self.assertEqualArray(db2.get_column('test', 'a').values,
-                              [23, 49, 61, 65])
+                              arr_a[indx])
         self.assertEqualArray(db2.get_column('test', 'b').values,
-                              [24, 50, 62, 66])
+                              arr_b[indx])
 
     def test_sql_delete_row(self):
         db = SQLDatabase(':memory:')
@@ -541,8 +545,8 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         db.add_column('test', 'a', data=np.arange(10, 20))
         db.add_column('test', 'b', data=np.arange(20, 30))
 
-        with self.assertRaisesRegex(sqlite3.OperationalError,
-                                    'no such column: c'):
+        with self.assertRaisesRegex(ValueError,
+                                    'not found'):
             db.select('test', columns=['c'])
 
         with self.assertRaisesRegex(ValueError,
@@ -601,12 +605,14 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         self.assertEqual(db.count('test', where=[Where('a', '>', 15),
                                                  Where('b', '<', 27)]), 1)
 
-    def test_sql_prop_db(self, tmp_path):
+    def test_sql_prop_db(self):
         db = SQLDatabase(':memory:')
         self.assertEqual(db.db, ':memory:')
 
-        db = SQLDatabase(str(tmp_path / 'test.db'))
-        self.assertEqual(db.db, str(tmp_path / 'test.db'))
+        tmp_path = tempfile.TemporaryFile(suffix='_test.db')
+        db = SQLDatabase(str(tmp_path))
+        self.assertEqual(db.db, str(tmp_path))
+        tmp_path.close()
 
     def test_sql_prop_table_names(self):
         db = SQLDatabase(':memory:')
@@ -655,5 +661,6 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         db.add_column('test', 'b', data=np.arange(20, 30))
 
         self.assertEqual(db.index_of('test', {'a': 15}), 5)
-        self.assertEqual(db.index_of('test', 'b >= 27'), [7, 8, 9])
+        self.assertEqual(db.index_of('test', Where('b', '>=', 27)),
+                         [7, 8, 9])
         self.assertEqual(db.index_of('test', {'a': 1, 'b': 2}), [])

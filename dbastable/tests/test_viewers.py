@@ -2,7 +2,7 @@
 # flake8: noqa: F403, F405
 
 import numpy as np
-from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase
+from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase, Where
 from astropy.table import Table
 
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
@@ -25,7 +25,8 @@ class TestSQLRow(TestCaseWithNumpyCompare):
         self.assertEqual(row.index, 0)
         self.assertEqual(row.column_names, ['a', 'b'])
         self.assertEqual(row.keys, ['a', 'b'])
-        self.assertEqual(row.values, [10, 20])
+        self.assertEqual(row.values, (10, 20))
+        self.assertIsInstance(row.values, tuple)
         self.assertEqual(row.as_dict(), {'a': 10, 'b': 20})
 
     def test_row_iter(self):
@@ -66,10 +67,10 @@ class TestSQLRow(TestCaseWithNumpyCompare):
 
         row['a'] = 1
         row['b'] = 1
-        self.assertEqual(db['test']['a'], [1, 11, 12, 13, 14,
-                                           15, 16, 17, 18, 19])
-        self.assertEqual(db['test']['b'], [1, 21, 22, 23, 24,
-                                           25, 26, 27, 28, 29])
+        self.assertEqualArray(db['test']['a'].values,
+                              [1, 11, 12, 13, 14, 15, 16, 17, 18, 19])
+        self.assertEqualArray(db['test']['b'].values,
+                              [1, 21, 22, 23, 24, 25, 26, 27, 28, 29])
 
         with self.assertRaises(KeyError):
             row['c'] = 1
@@ -133,16 +134,16 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         a = table.select(order='a', limit=2, offset=2)
         self.assertEqual(a, [(12, 22), (13, 23)])
 
-        a = table.select(order='a', where='a < 15')
+        a = table.select(order='a', where=Where('a', '<', 15))
         self.assertEqual(a, [(10, 20), (11, 21), (12, 22), (13, 23), (14, 24)])
 
-        a = table.select(order='a', where='a < 15', limit=3)
+        a = table.select(order='a', where=Where('a', '<', 15), limit=3)
         self.assertEqual(a, [(10, 20), (11, 21), (12, 22)])
 
-        a = table.select(order='a', where='a < 15', limit=3, offset=2)
+        a = table.select(order='a', where=Where('a', '<', 15), limit=3, offset=2)
         self.assertEqual(a, [(12, 22), (13, 23), (14, 24)])
 
-        a = table.select(columns=['a'], where='a < 15')
+        a = table.select(columns=['a'], where=Where('a', '<', 15))
         self.assertEqual(a, [(10,), (11,), (12,), (13,), (14,)])
 
     def test_table_as_table(self):
@@ -152,8 +153,9 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         a = table.as_table()
         self.assertIsInstance(a, Table)
         self.assertEqual(a.colnames, ['a', 'b'])
-        self.assertEqual(a, Table(names=['a', 'b'], data=[np.arange(10, 20),
-                                                          np.arange(20, 30)]))
+        self.assertEqualArray(a, Table(names=['a', 'b'],
+                                       data=[np.arange(10, 20),
+                                             np.arange(20, 30)]))
 
     def test_table_as_table_empty(self):
         db = SQLDatabase(':memory:')
@@ -222,11 +224,11 @@ class TestSQLTable(TestCaseWithNumpyCompare):
 
         a = table.get_column('a')
         self.assertIsInstance(a, SQLColumn)
-        self.assertEqual(a.values, np.arange(10, 20))
+        self.assertEqualArray(a.values, np.arange(10, 20))
 
         a = table.get_column('b')
         self.assertIsInstance(a, SQLColumn)
-        self.assertEqual(a.values, np.arange(20, 30))
+        self.assertEqualArray(a.values, np.arange(20, 30))
 
     def test_table_set_column(self):
         db = self.db
@@ -241,10 +243,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         db = self.db
         table = db['test']
 
-        with self.assterRaises(ValueError):
+        with self.assertRaises(ValueError):
             table.set_column('a', np.arange(5, 16))
 
-        with self.assterRaises(KeyError):
+        with self.assertRaises(KeyError):
             table.set_column('c', np.arange(5, 15))
 
     def test_table_add_row(self):
@@ -276,10 +278,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         db = self.db
         table = db['test']
 
-        with self.assterRaises(ValueError):
+        with self.assertRaises(ValueError):
             table.add_rows([1, 2, 3, 4])
 
-        with self.assterRaises(TypeError):
+        with self.assertRaises(TypeError):
             table.add_rows(2)
 
     def test_table_get_row(self):
@@ -302,17 +304,17 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         expect = np.transpose([np.arange(10, 20), np.arange(20, 30)])
         expect[0] = [5, 15]
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         expect[-1] = [-1, -1]
         table.set_row(-1, {'a': -1, 'b': -1})
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         expect[-1] = [5, 5]
         table.set_row(-1, [5, 5])
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
     def test_table_set_row_invalid(self):
         db = self.db
@@ -344,8 +346,8 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         table = db['test']
         self.assertIsInstance(table, SQLTable)
 
-        self.assertEqual(table['a'].values, np.arange(10, 20))
-        self.assertEqual(table['b'].values, np.arange(20, 30))
+        self.assertEqualArray(table['a'].values, np.arange(10, 20))
+        self.assertEqualArray(table['b'].values, np.arange(20, 30))
 
         with self.assertRaises(KeyError):
             table['c']
@@ -355,7 +357,7 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         table = db['test']
         self.assertIsInstance(table, SQLTable)
 
-        self.assertEqual(table[('a',)].values, np.arange(10, 20))
+        self.assertEqualArray(table[('a',)].values, np.arange(10, 20))
         self.assertIsInstance(table[('a',)], SQLColumn)
         self.assertEqual(table[(1,)].values, (11, 21))
         self.assertIsInstance(table[(1,)], SQLRow)
@@ -413,12 +415,12 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         expect = np.transpose([np.arange(10, 20), np.arange(20, 30)])
         expect[0] = [5, 15]
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         table[-1] = {'a': -1, 'b': -1}
         expect[-1] = [-1, -1]
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         with self.assertRaises(IndexError):
             table[10] = {'a': -1, 'b': -1}
@@ -433,12 +435,12 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         table['a'] = np.arange(40, 50)
         expect = np.transpose([np.arange(40, 50), np.arange(20, 30)])
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         table['b'] = np.arange(10, 20)
         expect = np.transpose([np.arange(40, 50), np.arange(10, 20)])
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         with self.assertRaises(KeyError):
             table['c'] = np.arange(10, 20)
@@ -451,12 +453,12 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         table[('a',)] = np.arange(40, 50)
         expect = np.transpose([np.arange(40, 50), np.arange(20, 30)])
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         table[(1,)] = {'a': -1, 'b': -1}
         expect[1] = [-1, -1]
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         with self.assertRaises(KeyError):
             table[('c',)] = np.arange(10, 20)
@@ -481,7 +483,7 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         expect[3:6, 0] = -999
         table['b', [2, 7]] = -888
         expect[[2, 7], 1] = -888
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         with self.assertRaises(KeyError):
             table[('c',)] = np.arange(10, 20)
@@ -499,7 +501,7 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         table = db['test']
         self.assertEqual(table.index_of({'a': 15}), 5)
         self.assertEqual(table.index_of({'a': 50}), [])
-        self.assertEqual(table.index_of('a < 13'), [0, 1, 2])
+        self.assertEqual(table.index_of(Where('a', '<', 13)), [0, 1, 2])
 
     def test_table_delete_row(self):
         db = self.db
@@ -509,12 +511,12 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         table.delete_row(0)
         expect = np.transpose([np.arange(11, 20), np.arange(21, 30)])
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         table.delete_row(-1)
         expect = np.transpose([np.arange(11, 19), np.arange(21, 29)])
         self.assertEqual(table.column_names, ['a', 'b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         with self.assertRaises(IndexError):
             table.delete_row(10)
@@ -529,7 +531,7 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         table.delete_column('a')
         expect = np.transpose([np.arange(20, 30)])
         self.assertEqual(table.column_names, ['b'])
-        self.assertEqual(table.values, expect)
+        self.assertEqualArray(table.values, expect)
 
         with self.assertRaises(KeyError):
             table.delete_column('a')
