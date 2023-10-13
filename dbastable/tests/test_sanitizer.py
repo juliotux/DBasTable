@@ -8,8 +8,8 @@ from dbastable.tests.mixins import TestCaseWithNumpyCompare
 class _Sanitizer(_SanitizerMixin):
     def __init__(self, allow_b32_colnames=False):
         self._allow_b32_colnames = allow_b32_colnames
-        self.columns = ['test1', 'test2',
-                        '__b32__ORSXG5BNGI']  # 'test-2'
+        self.column_names = ['test1', 'test2',
+                             '__b32__ORSXG5BNGI']  # 'test-2'
 
 
 class TestSanitizeColnames(TestCaseWithNumpyCompare):
@@ -123,3 +123,8 @@ class TestSanitizeGetColumnName(TestCaseWithNumpyCompare):
         s = _Sanitizer(True)
         with self.assertRaisesRegex(ValueError, 'not found'):
             s.get_column_name('test!2')
+
+    def test_get_column_name_id(self):
+        s = _Sanitizer(False)
+        self.assertEqual(s.get_column_name('__id__'), '__id__')
+        self.assertEqual(s.get_column_name('__ID__'), '__id__')

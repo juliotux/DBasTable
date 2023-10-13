@@ -8,7 +8,7 @@ from ._viewers import (
     SQLColumn
 )
 from ._sanitizer import _SanitizerMixin
-from .where import _WhereParserMixin
+from .where import _WhereParserMixin, Where
 from ._def import _ID_KEY
 from ._broadcaster import broadcast
 
@@ -58,6 +58,8 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
     Notes
     -----
     - '__id__' is only for internal indexing. It is ignored on returns.
+    - '__b32__' will be used as prefix for base32 encoded column names. So
+      it is not allowed to use this prefix in column names.
     """
 
     def __init__(self, db=None, autocommit=True, logger=None,
@@ -512,17 +514,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin):
                 return self.select(table)
             if len(indx) == 0:
                 return None
-            if len(indx) >= 10000:
-                # too many rows must be divided
-                indx = np.array_split(indx, np.ceil(len(indx)/10000))
-                d = None
-                for i in indx:
-                    if d is None:
-                        d = _get_data(table, i)
-                    else:
-                        np.vstack([d, _get_data(table, i)])
-                return d
-            where = " OR ".join(f"{_ID_KEY}={v+1}" for v in indx)
+            where = Where(_ID_KEY, 'IN', indx)
             return self.select(table, where=where)
 
         # when copying, always copy to memory

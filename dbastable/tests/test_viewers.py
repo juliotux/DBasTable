@@ -5,7 +5,7 @@ import numpy as np
 from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase
 from astropy.table import Table
 
-from .mixins import TestCaseWithNumpyCompare
+from dbastable.tests.mixins import TestCaseWithNumpyCompare
 
 
 class TestSQLRow(TestCaseWithNumpyCompare):

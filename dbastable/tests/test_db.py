@@ -359,293 +359,293 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
             db.delete_column('test', 'table')
 
 
-# class TestSQLDatabaseAccess(TestCaseWithNumpyCompare):
-#     def test_sql_get_table(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+class TestSQLDatabaseAccess(TestCaseWithNumpyCompare):
+    def test_sql_get_table(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         self.assertEqual(db.get_table('test').values, list(zip(np.arange(10, 20),
-#                                                            np.arange(20, 30))))
-#         self.assertIsInstance(db.get_table('test'), SQLTable)
+        self.assertEqual(db.get_table('test').values, list(zip(np.arange(10, 20),
+                                                           np.arange(20, 30))))
+        self.assertIsInstance(db.get_table('test'), SQLTable)
 
-#         with self.assertRaises(KeyError):
-#             db.get_table('not_a_table')
+        with self.assertRaises(KeyError):
+            db.get_table('not_a_table')
 
-#     def test_sql_get_table_empty(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
+    def test_sql_get_table_empty(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
 
-#         self.assertEqual(len(db.get_table('test')), 0)
-#         self.assertIsInstance(db.get_table('test'), SQLTable)
+        self.assertEqual(len(db.get_table('test')), 0)
+        self.assertIsInstance(db.get_table('test'), SQLTable)
 
-#     def test_sql_get_column(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_get_column(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         self.assertEqualArray(db.get_column('test', 'a').values,
-#                               np.arange(10, 20))
-#         self.assertEqualArray(db.get_column('test', 'b').values,
-#                               np.arange(20, 30))
-#         self.assertIsInstance(db.get_column('test', 'a'), SQLColumn)
-#         self.assertIsInstance(db.get_column('test', 'b'), SQLColumn)
+        self.assertEqualArray(db.get_column('test', 'a').values,
+                              np.arange(10, 20))
+        self.assertEqualArray(db.get_column('test', 'b').values,
+                              np.arange(20, 30))
+        self.assertIsInstance(db.get_column('test', 'a'), SQLColumn)
+        self.assertIsInstance(db.get_column('test', 'b'), SQLColumn)
 
-#         # same access from table
-#         self.assertEqualArray(db.get_table('test').get_column('a').values,
-#                               np.arange(10, 20))
-#         self.assertEqualArray(db.get_table('test').get_column('b').values,
-#                               np.arange(20, 30))
-#         self.assertIsInstance(db.get_table('test').get_column('a'), SQLColumn)
-#         self.assertIsInstance(db.get_table('test').get_column('b'), SQLColumn)
+        # same access from table
+        self.assertEqualArray(db.get_table('test').get_column('a').values,
+                              np.arange(10, 20))
+        self.assertEqualArray(db.get_table('test').get_column('b').values,
+                              np.arange(20, 30))
+        self.assertIsInstance(db.get_table('test').get_column('a'), SQLColumn)
+        self.assertIsInstance(db.get_table('test').get_column('b'), SQLColumn)
 
-#         with self.assertRaises(KeyError):
-#             db.get_column('test', 'c')
-#         with self.assertRaises(KeyError):
-#             db.get_table('test').get_column('c')
+        with self.assertRaises(KeyError):
+            db.get_column('test', 'c')
+        with self.assertRaises(KeyError):
+            db.get_table('test').get_column('c')
 
-#     def test_sql_get_row(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_get_row(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         self.assertEqualArray(db.get_row('test', 4).values, (14, 24))
-#         self.assertIsInstance(db.get_row('test', 4), SQLRow)
+        self.assertEqualArray(db.get_row('test', 4).values, (14, 24))
+        self.assertIsInstance(db.get_row('test', 4), SQLRow)
 
-#         self.assertEqualArray(db.get_row('test', -1).values, (19, 29))
-#         self.assertIsInstance(db.get_row('test', -1), SQLRow)
+        self.assertEqualArray(db.get_row('test', -1).values, (19, 29))
+        self.assertIsInstance(db.get_row('test', -1), SQLRow)
 
-#         # same access from table
-#         self.assertEqualArray(db.get_table('test').get_row(4).values, [14, 24])
-#         self.assertIsInstance(db.get_table('test').get_row(4), SQLRow)
+        # same access from table
+        self.assertEqualArray(db.get_table('test').get_row(4).values, [14, 24])
+        self.assertIsInstance(db.get_table('test').get_row(4), SQLRow)
 
-#         with self.assertRaises(IndexError):
-#             db.get_row('test', 11)
-#         with self.assertRaises(IndexError):
-#             db.get_row('test', -11)
-#         with self.assertRaises(IndexError):
-#             db.get_table('test').get_row(11)
-#         with self.assertRaises(IndexError):
-#             db.get_table('test').get_row(-11)
+        with self.assertRaises(IndexError):
+            db.get_row('test', 11)
+        with self.assertRaises(IndexError):
+            db.get_row('test', -11)
+        with self.assertRaises(IndexError):
+            db.get_table('test').get_row(11)
+        with self.assertRaises(IndexError):
+            db.get_table('test').get_row(-11)
 
-#     def test_sql_getitem(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_getitem(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         self.assertEqualArray(db['test']['a'].values, np.arange(10, 20))
-#         self.assertEqualArray(db['test']['b'].values, np.arange(20, 30))
-#         self.assertIsInstance(db['test']['a'], SQLColumn)
-#         self.assertIsInstance(db['test']['b'], SQLColumn)
+        self.assertEqualArray(db['test']['a'].values, np.arange(10, 20))
+        self.assertEqualArray(db['test']['b'].values, np.arange(20, 30))
+        self.assertIsInstance(db['test']['a'], SQLColumn)
+        self.assertIsInstance(db['test']['b'], SQLColumn)
 
-#         self.assertEqualArray(db['test'][4].values, (14, 24))
-#         self.assertIsInstance(db['test'][4], SQLRow)
-#         self.assertEqualArray(db['test'][-1].values, (19, 29))
-#         self.assertIsInstance(db['test'][-1], SQLRow)
+        self.assertEqualArray(db['test'][4].values, (14, 24))
+        self.assertIsInstance(db['test'][4], SQLRow)
+        self.assertEqualArray(db['test'][-1].values, (19, 29))
+        self.assertIsInstance(db['test'][-1], SQLRow)
 
-#         with self.assertRaises(KeyError):
-#             db['test']['c']
-#         with self.assertRaises(KeyError):
-#             db['not_a_table']['a']
+        with self.assertRaises(KeyError):
+            db['test']['c']
+        with self.assertRaises(KeyError):
+            db['not_a_table']['a']
 
-#         with self.assertRaises(IndexError):
-#             db['test'][11]
-#         with self.assertRaises(IndexError):
-#             db['test'][-11]
+        with self.assertRaises(IndexError):
+            db['test'][11]
+        with self.assertRaises(IndexError):
+            db['test'][-11]
 
-#     def test_sql_getitem_tuple(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_getitem_tuple(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         self.assertEqualArray(db['test', 'a'].values, np.arange(10, 20))
-#         self.assertEqualArray(db['test', 'b'].values, np.arange(20, 30))
-#         self.assertIsInstance(db['test', 'a'], SQLColumn)
-#         self.assertIsInstance(db['test', 'b'], SQLColumn)
+        self.assertEqualArray(db['test', 'a'].values, np.arange(10, 20))
+        self.assertEqualArray(db['test', 'b'].values, np.arange(20, 30))
+        self.assertIsInstance(db['test', 'a'], SQLColumn)
+        self.assertIsInstance(db['test', 'b'], SQLColumn)
 
-#         self.assertEqualArray(db['test', 4].values, (14, 24))
-#         self.assertIsInstance(db['test', 4], SQLRow)
-#         self.assertEqualArray(db['test', -1].values, (19, 29))
-#         self.assertIsInstance(db['test', -1], SQLRow)
+        self.assertEqualArray(db['test', 4].values, (14, 24))
+        self.assertIsInstance(db['test', 4], SQLRow)
+        self.assertEqualArray(db['test', -1].values, (19, 29))
+        self.assertIsInstance(db['test', -1], SQLRow)
 
-#         self.assertEqual(db['test', 'a', 4], 14)
-#         self.assertEqual(db['test', 'b', 4], 24)
-#         self.assertEqual(db['test', 'a', -1], 19)
-#         self.assertEqual(db['test', 'b', -1], 29)
-#         self.assertEqual(db['test', 4, 'a'], 14)
-#         self.assertEqual(db['test', 4, 'b'], 24)
-#         self.assertEqual(db['test', -1, 'a'], 19)
-#         self.assertEqual(db['test', -1, 'b'], 29)
+        self.assertEqual(db['test', 'a', 4], 14)
+        self.assertEqual(db['test', 'b', 4], 24)
+        self.assertEqual(db['test', 'a', -1], 19)
+        self.assertEqual(db['test', 'b', -1], 29)
+        self.assertEqual(db['test', 4, 'a'], 14)
+        self.assertEqual(db['test', 4, 'b'], 24)
+        self.assertEqual(db['test', -1, 'a'], 19)
+        self.assertEqual(db['test', -1, 'b'], 29)
 
-#     def test_sql_getitem_table_force(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_getitem_table_force(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         with self.assertRaises(ValueError):
-#             db[1]
-#         with self.assertRaises(ValueError):
-#             db[1, 2]
-#         with self.assertRaises(ValueError):
-#             db[1, 2, 'test']
-#         with self.assertRaises(ValueError):
-#             db[[1, 2], 'test']
+        with self.assertRaises(ValueError):
+            db[1]
+        with self.assertRaises(ValueError):
+            db[1, 2]
+        with self.assertRaises(ValueError):
+            db[1, 2, 'test']
+        with self.assertRaises(ValueError):
+            db[[1, 2], 'test']
 
 
-# class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
-#     def test_sql_select_where(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
+    def test_sql_select_where(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         a = db.select('test', columns='a', where={'a': 15})
-#         self.assertEqual(a, [15])
+        a = db.select('test', columns='a', where={'a': 15})
+        self.assertEqual(a, [15])
 
-#         a = db.select('test', columns=['a', 'b'], where={'b': 22})
-#         self.assertEqualArray(a, [(12, 22)])
+        a = db.select('test', columns=['a', 'b'], where={'b': 22})
+        self.assertEqualArray(a, [(12, 22)])
 
-#         a = db.select('test', columns=['a', 'b'], where=None)
-#         self.assertEqualArray(
-#             a, list(zip(np.arange(10, 20), np.arange(20, 30))))
+        a = db.select('test', columns=['a', 'b'], where=None)
+        self.assertEqualArray(
+            a, list(zip(np.arange(10, 20), np.arange(20, 30))))
 
-#         a = db.select('test', columns=['a', 'b'], where=['a > 12', 'b < 26'])
-#         self.assertEqualArray(a, [(13, 23), (14, 24), (15, 25)])
+        a = db.select('test', columns=['a', 'b'], where=['a > 12', 'b < 26'])
+        self.assertEqualArray(a, [(13, 23), (14, 24), (15, 25)])
 
-#     def test_sql_select_limit_offset(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_select_limit_offset(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         a = db.select('test', columns='a', limit=1)
-#         self.assertEqual(a, 10)
+        a = db.select('test', columns='a', limit=1)
+        self.assertEqual(a, 10)
 
-#         a = db.select('test', columns='a', limit=3, offset=2)
-#         self.assertEqual(a, [[12], [13], [14]])
+        a = db.select('test', columns='a', limit=3, offset=2)
+        self.assertEqual(a, [[12], [13], [14]])
 
-#     def test_sql_select_invalid(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_select_invalid(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         with self.assertRaises(sqlite3.OperationalError,
-#                                match='no such column: c'):
-#             db.select('test', columns=['c'])
+        with self.assertRaises(sqlite3.OperationalError,
+                               match='no such column: c'):
+            db.select('test', columns=['c'])
 
-#         with self.assertRaises(ValueError,
-#                                match='offset cannot be used without limit.'):
-#             db.select('test', columns='a', offset=1)
+        with self.assertRaises(ValueError,
+                               match='offset cannot be used without limit.'):
+            db.select('test', columns='a', offset=1)
 
-#         with self.assertRaises(TypeError, match='where must be'):
-#             db.select('test', columns='a', where=1)
+        with self.assertRaises(TypeError, match='where must be'):
+            db.select('test', columns='a', where=1)
 
-#         with self.assertRaises(TypeError, match='if where is a list'):
-#             db.select('test', columns='a', where=[1, 2, 3])
+        with self.assertRaises(TypeError, match='if where is a list'):
+            db.select('test', columns='a', where=[1, 2, 3])
 
-#         with self.assertRaises(TypeError):
-#             db.select('test', limit=3.14)
+        with self.assertRaises(TypeError):
+            db.select('test', limit=3.14)
 
-#         with self.assertRaises(TypeError):
-#             db.select('test', order=5)
+        with self.assertRaises(TypeError):
+            db.select('test', order=5)
 
-#     def test_sql_select_order(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30)[::-1])
+    def test_sql_select_order(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30)[::-1])
 
-#         a = db.select('test', order='b')
-#         self.assertEqual(a, list(zip(np.arange(10, 20),
-#                                  np.arange(20, 30)[::-1]))[::-1])
+        a = db.select('test', order='b')
+        self.assertEqual(a, list(zip(np.arange(10, 20),
+                                 np.arange(20, 30)[::-1]))[::-1])
 
-#         a = db.select('test', order='b', limit=2)
-#         self.assertEqual(a, [(19, 20), (18, 21)])
+        a = db.select('test', order='b', limit=2)
+        self.assertEqual(a, [(19, 20), (18, 21)])
 
-#         a = db.select('test', order='b', limit=2, offset=2)
-#         self.assertEqual(a, [(17, 22), (16, 23)])
+        a = db.select('test', order='b', limit=2, offset=2)
+        self.assertEqual(a, [(17, 22), (16, 23)])
 
-#         a = db.select('test', order='b', where='a < 15')
-#         self.assertEqual(a, [(14, 25), (13, 26), (12, 27), (11, 28), (10, 29)])
+        a = db.select('test', order='b', where='a < 15')
+        self.assertEqual(a, [(14, 25), (13, 26), (12, 27), (11, 28), (10, 29)])
 
-#         a = db.select('test', order='b', where='a < 15', limit=3)
-#         self.assertEqual(a, [(14, 25), (13, 26), (12, 27)])
+        a = db.select('test', order='b', where='a < 15', limit=3)
+        self.assertEqual(a, [(14, 25), (13, 26), (12, 27)])
 
-#         a = db.select('test', order='b', where='a < 15', limit=3, offset=2)
-#         self.assertEqual(a, [(12, 27), (11, 28), (10, 29)])
+        a = db.select('test', order='b', where='a < 15', limit=3, offset=2)
+        self.assertEqual(a, [(12, 27), (11, 28), (10, 29)])
 
-#     def test_sql_count(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_count(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         self.assertEqual(db.count('test'), 10)
-#         self.assertEqual(db.count('test', where={'a': 15}), 1)
-#         self.assertEqual(db.count('test', where={'a': 15, 'b': 22}), 0)
-#         self.assertEqual(db.count('test', where='a > 15'), 4)
-#         self.assertEqual(db.count('test', where=['a > 15', 'b < 27']), 1)
+        self.assertEqual(db.count('test'), 10)
+        self.assertEqual(db.count('test', where={'a': 15}), 1)
+        self.assertEqual(db.count('test', where={'a': 15, 'b': 22}), 0)
+        self.assertEqual(db.count('test', where='a > 15'), 4)
+        self.assertEqual(db.count('test', where=['a > 15', 'b < 27']), 1)
 
-#     def test_sql_prop_db(self, tmp_path):
-#         db = SQLDatabase(':memory:')
-#         self.assertEqual(db.db, ':memory:')
+    def test_sql_prop_db(self, tmp_path):
+        db = SQLDatabase(':memory:')
+        self.assertEqual(db.db, ':memory:')
 
-#         db = SQLDatabase(str(tmp_path / 'test.db'))
-#         self.assertEqual(db.db, str(tmp_path / 'test.db'))
+        db = SQLDatabase(str(tmp_path / 'test.db'))
+        self.assertEqual(db.db, str(tmp_path / 'test.db'))
 
-#     def test_sql_prop_table_names(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_table('test2')
-#         self.assertEqual(db.table_names, ['test', 'test2'])
+    def test_sql_prop_table_names(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_table('test2')
+        self.assertEqual(db.table_names, ['test', 'test2'])
 
-#     def test_sql_prop_column_names(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
-#         self.assertEqual(db.column_names('test'), ['a', 'b'])
+    def test_sql_prop_column_names(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
+        self.assertEqual(db.column_names('test'), ['a', 'b'])
 
-#     def test_sql_repr(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
-#         db.add_table('test2')
-#         db.add_column('test2', 'a', data=np.arange(10, 20))
-#         db.add_column('test2', 'b', data=np.arange(20, 30))
+    def test_sql_repr(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
+        db.add_table('test2')
+        db.add_column('test2', 'a', data=np.arange(10, 20))
+        db.add_column('test2', 'b', data=np.arange(20, 30))
 
-#         expect = f"SQLDatabase ':memory:' at {hex(id(db))}:\n"
-#         expect += "\ttest: 2 columns 10 rows\n"
-#         expect += "\ttest2: 2 columns 10 rows"
-#         self.assertEqual(repr(db), expect)
+        expect = f"SQLDatabase ':memory:' at {hex(id(db))}:\n"
+        expect += "\ttest: 2 columns 10 rows\n"
+        expect += "\ttest2: 2 columns 10 rows"
+        self.assertEqual(repr(db), expect)
 
-#         db = SQLDatabase(':memory:')
-#         expect = f"SQLDatabase ':memory:' at {hex(id(db))}:\n"
-#         expect += "\tEmpty database."
-#         self.assertEqual(repr(db), expect)
+        db = SQLDatabase(':memory:')
+        expect = f"SQLDatabase ':memory:' at {hex(id(db))}:\n"
+        expect += "\tEmpty database."
+        self.assertEqual(repr(db), expect)
 
-#     def test_sql_len(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_table('test2')
-#         db.add_table('test3')
+    def test_sql_len(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_table('test2')
+        db.add_table('test3')
 
-#         self.assertEqual(len(db), 3)
+        self.assertEqual(len(db), 3)
 
-#     def test_sql_index_of(self):
-#         db = SQLDatabase(':memory:')
-#         db.add_table('test')
-#         db.add_column('test', 'a', data=np.arange(10, 20))
-#         db.add_column('test', 'b', data=np.arange(20, 30))
+    def test_sql_index_of(self):
+        db = SQLDatabase(':memory:')
+        db.add_table('test')
+        db.add_column('test', 'a', data=np.arange(10, 20))
+        db.add_column('test', 'b', data=np.arange(20, 30))
 
-#         self.assertEqual(db.index_of('test', {'a': 15}), 5)
-#         self.assertEqual(db.index_of('test', 'b >= 27'), [7, 8, 9])
-#         self.assertEqual(db.index_of('test', {'a': 1, 'b': 2}), [])
+        self.assertEqual(db.index_of('test', {'a': 15}), 5)
+        self.assertEqual(db.index_of('test', 'b >= 27'), [7, 8, 9])
+        self.assertEqual(db.index_of('test', {'a': 1, 'b': 2}), [])
