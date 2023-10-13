@@ -315,13 +315,13 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
     """
 
     def __init__(self, db=None, autocommit=True, logger=None,
-                 alow_b32_colnames=False, **kwargs):
+                 allow_b32_colnames=False, **kwargs):
         self._db = db
         self._con = sql.connect(self._db or ':memory:', **kwargs)
         self._cur = self._con.cursor()
         self.autocommit = autocommit
         self.logger = logger or logging.getLogger(__name__)
-        self._allow_b32_colnames = alow_b32_colnames
+        self._allow_b32_colnames = allow_b32_colnames
         # self._con.set_trace_callback(self.logger.debug)
         # self._con.set_trace_callback(print)
 

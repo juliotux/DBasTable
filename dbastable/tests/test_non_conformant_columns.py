@@ -8,7 +8,7 @@ from dbastable.tests.mixins import TestCaseWithNumpyCompare
 
 class TestNonConformantColumns(TestCaseWithNumpyCompare):
     def test_create_column(self):
-        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
         db.add_table('test')
         db.add_column('test', 'test!1 ')
         db.add_column('test', 'test@ 2')
@@ -19,7 +19,7 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
                          ['__b32__ORSXG5BBGEQA', '__b32__ORSXG5CAEAZA'])
 
     def test_create_column_with_data(self):
-        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
         db.add_table('test')
         db.add_column('test', 'test!1 ', data=[1, 2, 3])
         db.add_column('test', 'test@ 2', data=[4, 5, 6])
@@ -34,7 +34,7 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         self.assertEqual(db.get_column('test', 'test@ 2').values, [4, 5, 6])
 
     def test_getitem_column(self):
-        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
         db.add_table('test')
         db.add_column('test', 'test!1 ', data=[1, 2, 3])
         db.add_column('test', 'test@ 2', data=[4, 5, 6])
@@ -50,7 +50,7 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         self.assertEqual(db['test', 'Test!1 '].name, 'test!1 ')
 
     def test_setitem_column(self):
-        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
         db.add_table('test')
         db.add_column('test', 'test!1 ', data=[1, 2, 3])
         db.add_column('test', 'test@ 2', data=[4, 5, 6])
@@ -68,7 +68,7 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         self.assertEqual(db['test', 'test@ 2'].values, [8, 11, 12])
 
     def test_column_from_row(self):
-        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
         db.add_table('test')
         db.add_column('test', 'test!1 ', data=[1, 2, 3])
         db.add_column('test', 'test@ 2', data=[4, 5, 6])
@@ -85,7 +85,7 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         self.assertEqual(r['tesT@ 2'], 5)
 
     def test_column_from_table(self):
-        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
         db.add_table('test')
         db.add_column('test', 'test!1 ', data=[1, 2, 3])
         db.add_column('test', 'test@ 2', data=[4, 5, 6])
@@ -100,7 +100,7 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         self.assertEqual(r['tesT@ 2'].values, [4, 5, 6])
 
     def test_column_where(self):
-        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
         db.add_table('test')
         db.add_column('test', 'test!1 ', data=[1, 2, 3])
         db.add_column('test', 'test@ 2', data=[4, 5, 6])
@@ -109,7 +109,7 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         self.assertEqual(sel, [(2, 5), (3, 6)])
 
     def test_column_where_dict(self):
-        db = SQLDatabase(':memory:', alow_b32_colnames=True)
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
         db.add_table('test')
         db.add_column('test', 'test!1 ', data=[1, 2, 3])
         db.add_column('test', 'test@ 2', data=[4, 5, 6])
