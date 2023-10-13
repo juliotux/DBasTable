@@ -9,7 +9,7 @@ from ._viewers import (
 )
 from ._sanitizer import _SanitizerMixin
 from .where import _WhereParserMixin, Where
-from ._def import _ID_KEY
+from ._def import _ID_KEY, _B32_COL_PREFIX
 from ._broadcaster import broadcast
 
 
@@ -160,14 +160,15 @@ class _ColumnAccessorMixin:
         """Add a column to a table."""
         self._check_table(table)
 
-        column = column.lower()
+        # check if the original column name is already in the table
+        if column.lower() in self.column_names(table):
+            raise ValueError(f'Column "{column}" already exists.')
+
         if data is not None and len(data) != len(self[table]) and \
            len(self[table]) != 0:
             raise ValueError("data must have the same length as the table.")
 
-        if column in (_ID_KEY, 'table', 'default'):
-            raise ValueError(f"{column} is a protected name.")
-
+        # get the real column name (encoded if needed)
         col = self._sanitize_colnames([column])[0]
         comm = f"ALTER TABLE {table} ADD COLUMN '{col}' ;"
         self.logger.debug('adding column "%s" to table "%s"', col, table)
@@ -194,8 +195,11 @@ class _ColumnAccessorMixin:
     def set_column(self, table, column, data):
         """Set a column in the table."""
         tablen = self.count(table)
-        if column not in self.column_names(table):
+        column = column.lower()
+
+        if column.lower() not in self.column_names(table):
             raise KeyError(f"column {column} does not exist.")
+
         if len(data) != tablen and tablen != 0:
             raise ValueError("data must have the same length as the table.")
 
@@ -203,7 +207,7 @@ class _ColumnAccessorMixin:
             for i in range(len(data)):
                 self.add_rows(table, {})
 
-        col = self._sanitize_colnames([column])[0]
+        col = self._get_column_name(table, column)
         comm = f"UPDATE {table} SET "
         comm += f"{col}=? "
         comm += f" WHERE {_ID_KEY}=?;"
@@ -436,14 +440,33 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         """Get a copy of the database."""
         return self.__copy__(indexes=indexes)
 
-    def column_names(self, table):
+    def column_names(self, table, do_not_decode=False):
         """Get the column names of the table."""
         self._check_table(table)
+
+        # we get the column names from the cursor descriptor, so we need to
+        # select a line
         comm = "SELECT * FROM "
         comm += f"{table} LIMIT 1;"
         self.execute(comm)
-        return [i[0].lower() for i in self._cur.description
-                if i[0].lower() != _ID_KEY.lower()]
+
+        # put the names in this list. Useful to handle encoded names
+        columns = []
+        for i in self._cur.description:
+            if i[0].lower() == _ID_KEY.lower():
+                # skip id key. This should not be included in the list
+                continue
+            # handle encoded names
+            if i[0].startswith(_B32_COL_PREFIX) and \
+               self._allow_b32_colnames:
+                if not do_not_decode:
+                    columns.append(self._decode_b32(i[0]))
+                else:
+                    columns.append(i[0])  # do not lower the names here
+            else:
+                # always return a lowered normal name
+                columns.append(i[0].lower())
+        return columns
 
     @property
     def db(self):
