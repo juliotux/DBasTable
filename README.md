@@ -1,6 +1,6 @@
 # DBasTable
 
-[![Unit Tests](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml/badge.svg)](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml)
+[![Unit Tests](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml/badge.svg)](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml) [![codecov](https://codecov.io/gh/juliotux/DBasTable/graph/badge.svg?token=r9kulm3ANZ)](https://codecov.io/gh/juliotux/DBasTable)
 
 A simplier way to access SQLite tables, just like Numpy structured arrarys or Pandas dataframes.
 
