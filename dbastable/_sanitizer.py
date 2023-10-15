@@ -101,6 +101,6 @@ class _SanitizerMixin:
         col = self._sanitize_colnames(column)
         # if the column is not in the database, raise an error
         if column not in self.column_names(table):
-            raise ValueError(f'Column {column} not found in the database.')
+            raise KeyError(f'Column {column} not found in the database.')
 
         return str(col)

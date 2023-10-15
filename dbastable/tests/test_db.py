@@ -551,7 +551,7 @@ class TestSQLDatabasePropsComms(TestCaseWithNumpyCompare):
         db.add_column('test', 'a', data=np.arange(10, 20))
         db.add_column('test', 'b', data=np.arange(20, 30))
 
-        with self.assertRaisesRegex(ValueError,
+        with self.assertRaisesRegex(KeyError,
                                     'not found'):
             db.select('test', columns=['c'])
 

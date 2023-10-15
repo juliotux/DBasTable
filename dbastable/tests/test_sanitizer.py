@@ -112,7 +112,7 @@ class TestSanitizeGetColumnName(TestCaseWithNumpyCompare):
 
     def test_get_column_name_not_in_database(self):
         s = _Sanitizer(False)
-        with self.assertRaisesRegex(ValueError, 'not found'):
+        with self.assertRaisesRegex(KeyError, 'not found'):
             s._get_column_name('table', 'test3')
 
     def test_get_column_name_b32(self):
@@ -123,7 +123,7 @@ class TestSanitizeGetColumnName(TestCaseWithNumpyCompare):
 
     def test_get_column_name_b32_not_in_database(self):
         s = _Sanitizer(True)
-        with self.assertRaisesRegex(ValueError, 'not found'):
+        with self.assertRaisesRegex(KeyError, 'not found'):
             s._get_column_name('table', 'test!2')
 
     def test_get_column_name_id(self):
