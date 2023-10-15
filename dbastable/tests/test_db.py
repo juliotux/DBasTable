@@ -168,11 +168,13 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         db.add_column('test', 'a')
         db.add_column('test', 'b')
         db.add_rows('test', dict(a=1, b=2))
-        db.add_rows('test', dict(a=3, c=4), add_columns=False)
+        with self.assertRaises(KeyError):
+            # add a row with non-existing columns must raise error
+            db.add_rows('test', dict(a=3, c=4), add_columns=False)
         db.add_rows('test', dict(a=5, d=6), add_columns=True)
 
-        self.assertEqual(db.get_column('test', 'a').values, [1, 3, 5])
-        self.assertEqual(db.get_column('test', 'b').values, [2, None, None])
+        self.assertEqual(db.get_column('test', 'a').values, [1, 5])
+        self.assertEqual(db.get_column('test', 'b').values, [2, None])
         self.assertEqual(len(db), 1)
         self.assertEqual(db.table_names, ['test'])
         self.assertEqual(db.column_names('test'), ['a', 'b', 'd'])
@@ -209,11 +211,13 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         db.add_column('test', 'a')
         db.add_column('test', 'b')
         db['test'].add_rows(dict(a=1, b=2))
-        db['test'].add_rows(dict(a=3, c=4), add_columns=False)
+        with self.assertRaises(KeyError):
+            # add a row with non-existing columns must raise error
+            db['test'].add_rows(dict(a=3, c=4), add_columns=False)
         db['test'].add_rows(dict(a=5, d=6), add_columns=True)
 
-        self.assertEqual(db.get_column('test', 'a').values, [1, 3, 5])
-        self.assertEqual(db.get_column('test', 'b').values, [2, None, None])
+        self.assertEqual(db.get_column('test', 'a').values, [1, 5])
+        self.assertEqual(db.get_column('test', 'b').values, [2, None])
         self.assertEqual(len(db), 1)
         self.assertEqual(db.table_names, ['test'])
         self.assertEqual(db.column_names('test'), ['a', 'b', 'd'])
@@ -241,7 +245,7 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         db.add_column('test', 'a', [1, 3, 5])
         db.add_column('test', 'b', [2, 4, 6])
 
-        db.set_row('test', 0, dict(a=10, b=20))
+        db.set_row('test', 0, {'a': 10, 'b': 20})
         db.set_row('test', 1, [20, 40])
         db.set_row('test', 2, np.array([30, 60]))
 
@@ -249,9 +253,9 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         self.assertEqual(db.get_column('test', 'b').values, [20, 40, 60])
 
         with self.assertRaises(IndexError):
-            db.set_row('test', 3, dict(a=10, b=20))
+            db.set_row('test', 3, {'a': 10, 'b': 20})
         with self.assertRaises(IndexError):
-            db.set_row('test', -4, dict(a=10, b=20))
+            db.set_row('test', -4, {'a': 10, 'b': 20})
 
     def test_sql_set_item(self):
         db = SQLDatabase(':memory:')

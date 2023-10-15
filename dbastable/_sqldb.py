@@ -18,14 +18,6 @@ __all__ = ['SQLDatabase', 'SQLTable', 'SQLRow', 'SQLColumn']
 
 class _RowAccessorMixin:
     """Access and manipulate rows."""
-    def _add_missing_columns(self, table, columns):
-        """Add missing columns to the table."""
-        existing = set(self.column_names(table))
-
-        # avoid problems working only with non sanitized names
-        # names will be sanitized in the add_column method
-        for col in [i for i in columns if i.lower() not in existing]:
-            self.add_column(table, col)
 
     @staticmethod
     def _fix_row_index(row, length):
@@ -36,7 +28,23 @@ class _RowAccessorMixin:
             raise IndexError('Row index out of range.')
         return row
 
-    def _dict2row(self, table, row):
+    def _dict2row(self, table, row, add_columns=False):
+        """Convert a dict to a list of data that is sorted as the columns."""
+        # check if column names matches the table
+        existing = set(self.column_names(table))
+        # avoid problems working only with non sanitized names
+        # names will be sanitized in the add_column method
+        missing = [i.lower() for i in row.keys() if i.lower() not in existing]
+
+        # add missing columns if needed
+        if add_columns:
+            for i in missing:
+                self.add_column(table, i)
+        elif len(missing) > 0:
+            # raise error if try to add rows with non-existing columns
+            raise KeyError(f'Columns {missing} do not exist in the table.')
+
+        row = self._sanitize_colnames(row)
         cols = self.column_names(table, do_not_decode=True)
         values = [None]*len(cols)
         for i, c in enumerate(cols):
@@ -49,14 +57,9 @@ class _RowAccessorMixin:
     def _add_data_dict(self, table, data, add_columns=False,
                        skip_sanitize=False):
         """Add data sotred in a dict to the table."""
-        if add_columns:
-            # here the columns must not be sanitized
-            self._add_missing_columns(table, data.keys())
-
-        # work directly with sanitized colnames
-        data = self._sanitize_colnames(data)
-
-        row_list = self._dict2row(table, row=data)
+        # sanitization of keys will be done in the methods below
+        row_list = self._dict2row(table, row=data,
+                                  add_columns=add_columns)
         try:
             rows = np.broadcast(*row_list)
         except ValueError:
@@ -148,7 +151,9 @@ class _RowAccessorMixin:
         colnames = self.column_names(table)
 
         if isinstance(data, dict):
-            data = self._dict2row(colnames, data)
+            # here we do not add mising columns
+            data = self._dict2row(table, data)
+
         elif isinstance(data, (list, tuple, np.ndarray)):
             if len(data) != len(colnames):
                 raise ValueError('data must have the same length as the '

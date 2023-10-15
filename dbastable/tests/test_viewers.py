@@ -263,16 +263,14 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         self.assertEqual(len(table), 12)
         self.assertEqual(table[-1].values, (-2, None, -2))
 
-        table.add_rows({'a': -3, 'd': -3}, add_columns=False)
-        self.assertEqual(table.column_names, ['a', 'b', 'c'])
-        self.assertEqual(len(table), 13)
-        self.assertEqual(table[-1].values, (-3, None, None))
+        with self.assertRaises(KeyError):
+            # non-existing columns must raise error
+            table.add_rows({'a': -3, 'd': -3}, add_columns=False)
 
         # defult add_columns must be false
-        table.add_rows({'a': -4, 'b': -4, 'c': -4, 'd': -4})
-        self.assertEqual(table.column_names, ['a', 'b', 'c'])
-        self.assertEqual(len(table), 14)
-        self.assertEqual(table[-1].values, (-4, -4, -4))
+        with self.assertRaises(KeyError):
+            # non-existing columns must raise error
+            table.add_rows({'a': -4, 'd': -4})
 
     def test_table_add_row_invalid(self):
         db = self.db
@@ -327,6 +325,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
 
         with self.assertRaises(TypeError):
             table.set_row(0, 'a')
+
+        with self.assertRaises(KeyError):
+            # non-existing columns must raise error
+            table.set_row(0, {'a': -1, 'c': -1})
 
     def test_table_getitem_int(self):
         db = self.db
