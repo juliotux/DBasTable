@@ -10,11 +10,12 @@ needs_sphinx = '4.3.0'
 
 extensions = [
     'sphinx.ext.intersphinx',
+    'sphinx.ext.extlinks',
     'sphinx.ext.todo',
+    'sphinx.ext.mathjax',
     'sphinx_automodapi.automodapi',
     'numpydoc',
-    'IPython.sphinxext.ipython_console_highlighting',
-    'IPython.sphinxext.ipython_directive'
+    'matplotlib.sphinxext.plot_directive'
 ]
 
 todo_include_todos = True
@@ -55,5 +56,8 @@ autosummary_generate = True
 default_role = 'py:obj'
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None)
+    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
+    "matplotlib": ("https://matplotlib.org/", None),
+    "astropy": ('http://docs.astropy.org/en/latest/', None),
+    "pandas": ('https://pandas.pydata.org/pandas-docs/stable/', None)
 }
