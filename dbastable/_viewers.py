@@ -245,7 +245,11 @@ class SQLTable:
         if isinstance(key, int):
             self.set_row(key, value)
         elif isinstance(key, str):
-            self.set_column(key, value)
+            try:
+                self.set_column(key, value)
+            except KeyError:
+                # if the column does not exist, add it
+                self.add_column(key, data=value)
         elif isinstance(key, tuple):
             if len(key) not in (1, 2):
                 raise KeyError(f'{key}')
