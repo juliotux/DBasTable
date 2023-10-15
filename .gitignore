@@ -1,6 +1,10 @@
 .vscode
 version.py
 
+# docs generated files
+docs/_build
+docs/api
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
