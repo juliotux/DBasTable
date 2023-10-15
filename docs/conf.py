@@ -14,8 +14,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'sphinx_automodapi.automodapi',
-    'numpydoc',
-    'matplotlib.sphinxext.plot_directive'
+    'numpydoc'
 ]
 
 todo_include_todos = True
