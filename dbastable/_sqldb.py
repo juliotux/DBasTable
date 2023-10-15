@@ -406,13 +406,12 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         self.autocommit = autocommit
         self.logger = logger or logging.getLogger(__name__)
         self._allow_b32_colnames = allow_b32_colnames
-        # self._con.set_trace_callback(self.logger.debug)
-        self._con.set_trace_callback(print)
+        self._con.set_trace_callback(lambda x:
+                                     self.logger.debug('executing sql: %s',
+                                                       x.replace('\n', ' ')))
 
     def execute(self, command, arguments=None):
         """Execute a SQL command in the database."""
-        self.logger.debug('executing sql command: "%s"',
-                          str.replace(command, '\n', ' '))
         try:
             if arguments is None:
                 self._cur.execute(command)
@@ -429,9 +428,6 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
 
     def executemany(self, command, arguments):
         """Execute a SQL command in the database."""
-        self.logger.debug('executing sql command: "%s"',
-                          str.replace(command, '\n', ' '))
-
         try:
             self._cur.executemany(command, arguments)
             res = self._cur.fetchall()
