@@ -12,7 +12,7 @@ dependencies = ["numpy"]
 
 [project.optional-dependencies]
 test = ["coverage", "astropy"]
-docs = ["sphinx", "pydata-sphinx-theme"]
+docs = ["sphinx", "pydata-sphinx-theme", "sphinx-automodapi", "numpydoc"]
 
 [project.urls]
 Homepage = "https://github.com/juliotux/dbastable"
