@@ -1,7 +1,7 @@
 DBasTable
 ---------
 
-Handle SQLite database tables just as if they were `Numpy structured arrays <https://numpy.org/doc/stable/user/basics.rec.html>`_, `~astropy.table.Table` or `~pandas.DataFrame`.
+Handle SQLite database tables just as if they were `Numpy structured arrays <https://numpy.org/doc/stable/user/basics.rec.html>`_, `~astropy.table.Table` or `~pandas.DataFrame`. This package is intended to be a simple interface to SQLite databases, so you can interact with them without know SQL commands.
 
 .. code-block:: python
 
@@ -56,6 +56,17 @@ Documentation
 
 The documentation is available at https://dbastable.readthedocs.io/en/latest/
 
+Usage
+-----
+
+For a general usage guide, see the following sections:
+
+.. toctree::
+   :maxdepth: 1
+
+   general_usage
+   viewer_classes
+   where_statements
 
 License
 -------
