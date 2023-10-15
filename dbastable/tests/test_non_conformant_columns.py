@@ -144,3 +144,28 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         db.add_rows('test', {'TEST!1 ': 5, 'TEST@ 2': 8})
         self.assertEqual(db['test']['test!1 '].values, [4, 5])
         self.assertEqual(db['test']['test@ 2'].values, [7, 8])
+
+    def test_add_columns_with_data(self):
+        from dbastable import SQLDatabase
+        db = SQLDatabase(allow_b32_colnames=True)
+        db.add_table('my_table')
+        db.add_column('my_table', '1test', data=[1, 2, 3])
+        db.add_column('my_table', 'test column', data=[1, 2, 3])
+        db.add_column('my_table', 'test!with!exclamation!points', data=[1, 2, 3])
+        db.add_column('my_table', 'test@with@at@signs', data=[1, 2, 3])
+
+        self.assertEqual(db['my_table']['1test'].values, [1, 2, 3])
+        self.assertEqual(db['my_table']['test column'].values, [1, 2, 3])
+        self.assertEqual(db['my_table']['test!with!exclamation!points'].values, [1, 2, 3])
+        self.assertEqual(db['my_table']['test@with@at@signs'].values, [1, 2, 3])
+
+        db.add_column('my_table', 'test')
+
+        self.assertEqual(db['my_table']['1test'].values, [1, 2, 3])
+        self.assertEqual(db['my_table']['test column'].values, [1, 2, 3])
+        self.assertEqual(db['my_table']['test!with!exclamation!points'].values, [1, 2, 3])
+        self.assertEqual(db['my_table']['test@with@at@signs'].values, [1, 2, 3])
+
+        sel = db.select('my_table', where=Where('1test', '>', 1))
+        self.assertEqual(sel, [(2, 2, 2, 2, None), (3, 3, 3, 3, None)])
+

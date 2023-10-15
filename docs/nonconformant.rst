@@ -73,6 +73,6 @@ Where statements also use original column names, and not the encoded ones.
 
     >>> from dbastable import Where
     >>> db.select('my_table', where={'test!with!exclamation!points': 1})
-    [(1, 1, 1)]
+    [(1, 1, 1, None)]
     >>> db.select('my_table', where=Where('1test', '>', 1))
-    [(2, 2, 2), (3, 3, 3)]
+    [(2, 2, 2, None), (3, 3, 3, None)]
