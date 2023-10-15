@@ -20,11 +20,11 @@ class _RowAccessorMixin:
     """Access and manipulate rows."""
     def _add_missing_columns(self, table, columns):
         """Add missing columns to the table."""
-        existing = set(self.column_names(table,
-                                         do_not_decode=True))
+        existing = set(self.column_names(table))
 
-        for col in [i for i in columns
-                    if self._sanitize_colnames(i) not in existing]:
+        # avoid problems working only with non sanitized names
+        # names will be sanitized in the add_column method
+        for col in [i for i in columns if i.lower() not in existing]:
             self.add_column(table, col)
 
     @staticmethod
@@ -36,8 +36,8 @@ class _RowAccessorMixin:
             raise IndexError('Row index out of range.')
         return row
 
-    @staticmethod
-    def _dict2row(cols, row):
+    def _dict2row(self, table, row):
+        cols = self.column_names(table, do_not_decode=True)
         values = [None]*len(cols)
         for i, c in enumerate(cols):
             if c in row.keys():
@@ -49,13 +49,14 @@ class _RowAccessorMixin:
     def _add_data_dict(self, table, data, add_columns=False,
                        skip_sanitize=False):
         """Add data sotred in a dict to the table."""
-        data = self._sanitize_colnames(data)
         if add_columns:
+            # here the columns must not be sanitized
             self._add_missing_columns(table, data.keys())
 
-        row_list = self._dict2row(cols=self.column_names(table,
-                                                         do_not_decode=True),
-                                  row=data)
+        # work directly with sanitized colnames
+        data = self._sanitize_colnames(data)
+
+        row_list = self._dict2row(table, row=data)
         try:
             rows = np.broadcast(*row_list)
         except ValueError:
@@ -77,6 +78,11 @@ class _RowAccessorMixin:
 
         if not skip_sanitize:
             data = [tuple(map(self._sanitize_value, d)) for d in data]
+
+        if len(data[0]) == 0:
+            # if no data, just return without execute
+            return
+
         comm = f"INSERT INTO {table} VALUES "
         comm += f"(NULL, {', '.join(['?']*len(data[0]))})"
         comm += ';'
@@ -328,7 +334,7 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         self.logger = logger or logging.getLogger(__name__)
         self._allow_b32_colnames = allow_b32_colnames
         # self._con.set_trace_callback(self.logger.debug)
-        # self._con.set_trace_callback(print)
+        self._con.set_trace_callback(print)
 
     def execute(self, command, arguments=None):
         """Execute a SQL command in the database."""

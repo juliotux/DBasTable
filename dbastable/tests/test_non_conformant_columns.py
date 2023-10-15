@@ -131,3 +131,16 @@ class TestNonConformantColumns(TestCaseWithNumpyCompare):
         db.add_rows('test', {'TEST!1 ': 5, 'TEST@ 2': 8})
         self.assertEqual(db['test']['test!1 '].values, [1, 2, 3, 4, 5])
         self.assertEqual(db['test']['test@ 2'].values, [4, 5, 6, 7, 8])
+
+    def test_add_row_dict_add_missing_columns(self):
+        db = SQLDatabase(':memory:', allow_b32_colnames=True)
+        db.add_table('test')
+        db.add_rows('test', {'test!1 ': 4, 'test@ 2': 7},
+                    add_columns=True)
+        self.assertEqual(db['test']['test!1 '].values, [4])
+        self.assertEqual(db['test']['test@ 2'].values, [7])
+
+        # also case insensitive
+        db.add_rows('test', {'TEST!1 ': 5, 'TEST@ 2': 8})
+        self.assertEqual(db['test']['test!1 '].values, [4, 5])
+        self.assertEqual(db['test']['test@ 2'].values, [7, 8])
