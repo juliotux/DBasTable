@@ -13,7 +13,7 @@ Handle SQLite database tables just as if they were `Numpy structured arrays <htt
     >>> print(db['table1'][2].values)
     (3, 'c')
 
-Its design is based mainly in the way you interact with [Numpy structured arrays](https://numpy.org/doc/stable/user/basics.rec.html), [Pandas dataframes](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html) and [Astropy Tables](https://docs.astropy.org/en/stable/table/index.html), while keep the possibility of non-volatile and in-disk data storage.
+Its design is based mainly in the way you interact with `Numpy structured arrays <https://numpy.org/doc/stable/user/basics.rec.html>`_, while keep the possibility of non-volatile and in-disk data storage.
 
 What is it for?
 ===============
@@ -43,10 +43,13 @@ Alternatively, you can clone the repository and install it manually::
     cd dbastable
     pip install -U .
 
-or
+or::
 
     pip install -U git+https://github.com/juliotux/dbastable
 
+Development version is also available at pip::
+
+    pip install -U --pre dbastable
 
 Documentation
 -------------
