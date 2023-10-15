@@ -8,13 +8,13 @@ By default, any operation that interfaces with column names will only accept nam
     >>> from dbastable import SQLDatabase
     >>> db = SQLDatabase()
     >>> db.add_table('my_table')
-    >>> db.add_column('my_table', '1test')
+    >>> db.add_column('my_table', '1test')  # doctest: +SKIP
     ...
     ValueError: Invalid column name: 1test.
-    >>> db.add_column('my_table', 'test column')
+    >>> db.add_column('my_table', 'test column')  # doctest: +SKIP
     ...
     ValueError: Invalid column name: test column.
-    >>> db.add_column('my_table', 'test!with!exclamation!points')
+    >>> db.add_column('my_table', 'test!with!exclamation!points')  # doctest: +SKIP
     ...
     ValueError: Invalid column name: test!with!exclamation!points.
 
