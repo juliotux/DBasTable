@@ -4,18 +4,17 @@ from ._def import _ID_KEY
 
 
 class SQLTable:
-    """Handle an SQL table operations interfacing with the DB."""
+    """Handle an SQL table operations interfacing with the DB.
+
+    Parameters
+    ----------
+    db : SQLDatabase
+        The parent database object.
+    name : str
+        The name of the table in the database.
+    """
 
     def __init__(self, db, name):
-        """Initialize the table.
-
-        Parameters
-        ----------
-        db : SQLDatabase
-            The parent database object.
-        name : str
-            The name of the table in the database.
-        """
         self._db = db
         self._name = name
 
@@ -41,7 +40,31 @@ class SQLTable:
         return self.select()
 
     def select(self, **kwargs):
-        """Select rows from the table."""
+        """Select rows from the table. See `~dbastable.SQLDatabase.select`.
+
+        Parameters
+        ----------
+        columns : list (optional)
+            List of columns to select. If None, select all columns.
+        where : dict (optional)
+            Dictionary of conditions to select rows. Keys are column names,
+            values are values to compare. If it is a dict of values, all rows
+            equal to the values will be selected. If it is a dict of
+            `~dbastable.where.Where` objects, the conditions will be combined
+            with the AND operator. If None, all rows are selected.
+        order : str (optional)
+            Column name to order by.
+        limit : int (optional)
+            Number of rows to select.
+        offset : int (optional)
+            Number of rows to skip before selecting.
+
+        Returns
+        -------
+        res : list
+            List of tuples with the selected rows. Each row values will be
+            returned in a tuple in the same order as the columns.
+        """
         return self._db.select(self._name, **kwargs)
 
     def as_table(self):
@@ -55,40 +78,132 @@ class SQLTable:
                      names=self.column_names)
 
     def add_column(self, name, data=None):
-        """Add a column to the table."""
+        """Add a column to the table. See `~dbastable.SQLDatabase.add_column`.
+
+        Parameters
+        ----------
+        name : str
+            Column name.
+        data : list (optional)
+        """
         self._db.add_column(self._name, name, data=data)
 
     def add_rows(self, data, add_columns=False):
-        """Add a row to the table."""
-        # If keymappging is used, only dict and list
+        """Add a row to the table. See `~dbastable.SQLDatabase.add_rows`.
+
+        Parameters
+        ----------
+        data : dict, list or `~numpy.ndarray`
+            Data to add to the table. If dict, keys are column names,
+            if list, the order of the values is the same as the order of
+            the column names. If `~numpy.ndarray`, dtype names are interpreted
+            as column names.
+        add_columns : bool (optional)
+            If True, add missing columns to the table.
+        """
         self._db.add_rows(self._name, data, add_columns=add_columns)
 
     def get_column(self, column):
-        """Get a given column from the table."""
+        """Get a given column from the table.
+        See `~dbastable.SQLDatabase.get_column`.
+
+        Parameters
+        ----------
+        column : str
+            Column name.
+
+        Returns
+        -------
+        res : `~dbastable.SQLColumn`
+            Column viewer object.
+        """
         return self._db.get_column(self._name, column)
 
     def get_row(self, row):
-        """Get a given row from the table."""
+        """Get a given row from the table.
+        See `~dbastable.SQLDatabase.get_row`.
+
+        Parameters
+        ----------
+        row : int
+            Row index.
+
+        Returns
+        -------
+        res : `~dbastable.SQLRow`
+            Row viewer object.
+        """
         return self._db.get_row(self._name, row)
 
     def set_column(self, column, data):
-        """Set a given column in the table."""
+        """Set a given column in the table.
+        See `~dbastable.SQLDatabase.set_column`.
+
+        Parameters
+        ----------
+        column : str
+            Column name.
+        data : list
+            List of values to set.
+        """
         self._db.set_column(self._name, column, data)
 
     def set_row(self, row, data):
-        """Set a given row in the table."""
+        """Set a given row in the table.
+        See `~dbastable.SQLDatabase.set_row`.
+
+        Parameters
+        ----------
+        row : int
+            Row index.
+        data : dict, list or `~numpy.ndarray`
+            Data to add to the table. If dict, keys are column names,
+            if list, the order of the values is the same as the order of
+            the column names. If `~numpy.ndarray`, dtype names are interpreted
+            as column names.
+        """
         self._db.set_row(self._name, row, data)
 
     def delete_column(self, column):
-        """Delete a given column from the table."""
+        """Delete a given column from the table.
+        See `~dbastable.SQLDatabase.delete_column`.
+
+        Parameters
+        ----------
+        column : str
+            Column name.
+        """
         self._db.delete_column(self._name, column)
 
     def delete_row(self, row):
-        """Delete all rows from the table."""
+        """Delete all rows from the table.
+        See `~dbastable.SQLDatabase.delete_row`.
+
+        Parameters
+        ----------
+        row : int
+            Row index.
+        """
         self._db.delete_row(self._name, row)
 
     def index_of(self, where):
-        """Get the index of the rows that match the given condition."""
+        """Get the index of the rows that match the given condition.
+        See `~dbastable.SQLDatabase.index_of`.
+
+        Parameters
+        ----------
+        where : dict
+            Dictionary of conditions to select rows. Keys are column names,
+            values are values to compare. If it is a dict of values, all rows
+            equal to the values will be selected. If it is a dict of
+            `~dbastable.where.Where` objects, the conditions will be combined
+            with the AND operator. If None, all rows are selected.
+
+        Returns
+        -------
+        res : list
+            List of row indexes.
+        """
         return self._db.index_of(self._name, where)
 
     def _resolve_tuple(self, key):
