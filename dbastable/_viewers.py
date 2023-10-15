@@ -280,10 +280,7 @@ class SQLTable:
 
 
 class SQLColumn:
-    """Handle an SQL column operations interfacing with the DB."""
-
-    def __init__(self, db, table, name):
-        """Initialize the column.
+    """Handle an SQL column operations interfacing with the DB.
 
         Parameters
         ----------
@@ -292,8 +289,9 @@ class SQLColumn:
         table : str
             The name of the table in the database.
         name : str
-            The column name in the table.
-        """
+            The column name in the table."""
+
+    def __init__(self, db, table, name):
         self._db = db
         self._table = table
         self._name = name
@@ -355,20 +353,18 @@ class SQLColumn:
 
 
 class SQLRow:
-    """Handle and SQL table row interfacing with the DB."""
+    """Handle and SQL table row interfacing with the DB.
+
+    Parameters
+    ----------
+    db : SQLDatabase
+        The parent database object.
+    table : str
+        The name of the table in the database.
+    row : int
+        The row index in the table."""
 
     def __init__(self, db, table, row):
-        """Initialize the row.
-
-        Parameters
-        ----------
-        db : SQLDatabase
-            The parent database object.
-        table : str
-            The name of the table in the database.
-        row : int
-            The row index in the table.
-        """
         self._db = db
         self._table = table
         self._row = row
