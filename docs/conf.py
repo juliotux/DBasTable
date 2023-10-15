@@ -47,7 +47,7 @@ html_static_path = ['_static']
 htmlhelp_basename = 'dbastable'
 html_theme_options = {
   "show_prev_next": False,
-  "footer_items": ["copyright", "sphinx-version", "theme-version"]
+  "footer_items": ["copyright", "sphinx-version"]
 }
 
 autosummary_generate = True

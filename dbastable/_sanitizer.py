@@ -43,7 +43,7 @@ class _SanitizerMixin:
             # if it is allowed
             if self._allow_b32_colnames:
                 return self._encode_b32(key)
-            raise ValueError(f'Invalid column name: {key}.')
+            raise ValueError(f'Invalid column name: {key}')
         return key.lower()
 
     def _sanitize_colnames(self, data):

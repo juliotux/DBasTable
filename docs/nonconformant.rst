@@ -8,15 +8,18 @@ By default, any operation that interfaces with column names will only accept nam
     >>> from dbastable import SQLDatabase
     >>> db = SQLDatabase()
     >>> db.add_table('my_table')
-    >>> db.add_column('my_table', '1test')  # doctest: +SKIP
+    >>> db.add_column('my_table', '1test')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
     ...
-    ValueError: Invalid column name: 1test.
-    >>> db.add_column('my_table', 'test column')  # doctest: +SKIP
+    ValueError: Invalid column name: 1test
+    >>> db.add_column('my_table', 'test column')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
     ...
-    ValueError: Invalid column name: test column.
-    >>> db.add_column('my_table', 'test!with!exclamation!points')  # doctest: +SKIP
+    ValueError: Invalid column name: test column
+    >>> db.add_column('my_table', 'test!with!exclamation!points')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
     ...
-    ValueError: Invalid column name: test!with!exclamation!points.
+    ValueError: Invalid column name: test!with!exclamation!points
 
 However, you can force the database to accept these non-conformant column names by setting the ``allow_b32_colnames`` parameter to ``True`` when you create the database. This will enable the non-conformant names to be encoded to `Base32 encoding <https://en.wikipedia.org/wiki/Base32>`_, and decoded back to their original names when you access them. This name encoding will be done by `base64.b32encode` and `base64.b32decode` from the Python standard library automatically.
 
