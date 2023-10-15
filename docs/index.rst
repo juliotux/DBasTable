@@ -67,6 +67,7 @@ For a general usage guide, see the following sections:
    general_usage
    viewer_classes
    where_statements
+   nonconformant
 
 License
 -------
