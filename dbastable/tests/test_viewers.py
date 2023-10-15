@@ -444,8 +444,9 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         self.assertEqual(table.column_names, ['a', 'b'])
         self.assertEqualArray(table.values, expect)
 
-        with self.assertRaises(KeyError):
-            table['c'] = np.arange(10, 20)
+        # if the column does not exists, it will be created
+        table['c'] = np.arange(10, 20)
+        self.assertEqualArray(table['c'].values, np.arange(10, 20))
 
     def test_table_setitem_tuple(self):
         db = self.db
@@ -462,8 +463,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         self.assertEqual(table.column_names, ['a', 'b'])
         self.assertEqualArray(table.values, expect)
 
-        with self.assertRaises(KeyError):
-            table[('c',)] = np.arange(10, 20)
+        # if the column does not exists, it will be created
+        table[('c',)] = np.arange(10, 20)
+        self.assertEqualArray(table['c'].values, np.arange(10, 20))
+
         with self.assertRaises(IndexError):
             table[(11,)] = np.arange(10, 20)
 
@@ -487,8 +490,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         expect[[2, 7], 1] = -888
         self.assertEqualArray(table.values, expect)
 
-        with self.assertRaises(KeyError):
-            table[('c',)] = np.arange(10, 20)
+        # if the column does not exists, it will be created
+        table[('c',)] = np.arange(10, 20)
+        self.assertEqualArray(table['c'].values, np.arange(10, 20))
+
         with self.assertRaises(IndexError):
             table[(11,)] = np.arange(10, 20)
         with self.assertRaises(KeyError):
