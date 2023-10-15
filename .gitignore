@@ -1,5 +1,7 @@
 .vscode
 version.py
+# files that may be created during tests
+*.db
 
 # docs generated files
 docs/_build
