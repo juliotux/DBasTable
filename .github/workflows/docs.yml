@@ -32,10 +32,9 @@ jobs:
         cache: pip
         cache-dependency-path: '**/pyproject.toml'
     - name: Install base dependencies
-      run: |
-        python -m pip install --upgrade --quiet pip setuptools
+      run: pip install -U -q pip setuptools
     - name: Install package dependencies
-      run: pip install -U .[docs]
+      run: pip install -U -q .[docs]
     - name: Build with Sphinx
       run: |
         cd docs
@@ -57,9 +56,9 @@ jobs:
         cache: pip
         cache-dependency-path: '**/pyproject.toml'
     - name: Install base dependencies
-      run: python -m pip install --upgrade --quiet pip setuptools
+      run: pip install -U -q pip setuptools
     - name: Install pytest
-      run: python -m pip install --upgrade --quite pytest pytest-doctestplus
+      run: pip install -U -q pytest pytest-doctestplus
     - name: Install package dependencies
       run: pip install -U .[docs] .[test]
     - name: Run pytest on docs
