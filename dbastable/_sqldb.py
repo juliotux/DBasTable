@@ -171,6 +171,51 @@ class _RowAccessorMixin:
 
 class _ColumnAccessorMixin:
     """Access and manipulate columns."""
+    _columns_cache = None
+
+    def column_names(self, table, do_not_decode=False):
+        """Get the column names of the table."""
+        self._check_table(table)
+
+        # if cache is not initialized, initialize it
+        if self._columns_cache is None:
+            self._columns_cache = {}
+
+        # if names are cached, use the cached names
+        if table in self._columns_cache.keys():
+            if do_not_decode:
+                return self._columns_cache[table]
+            return [self._decode_b32(i)
+                    if i.startswith(_B32_COL_PREFIX) else i
+                    for i in self._columns_cache[table]]
+
+        # we get the column names from the cursor descriptor, so we need to
+        # select a line
+        comm = "SELECT * FROM "
+        comm += f"{table} LIMIT 1;"
+        self.execute(comm)
+
+        # put the names in this list. Useful to handle encoded names
+        columns = []
+        for i in self._cur.description:
+            if i[0].lower() == _ID_KEY.lower():
+                # skip id key. This should not be included in the list
+                continue
+            # handle encoded names
+            if i[0].startswith(_B32_COL_PREFIX) and \
+               self._allow_b32_colnames:
+                if not do_not_decode:
+                    columns.append(self._decode_b32(i[0]))
+                else:
+                    columns.append(i[0])  # do not lower the names here
+            else:
+                # always return a lowered normal name
+                columns.append(i[0].lower())
+
+        # add columns to the cache
+        self._columns_cache[table] = columns
+
+        return columns
 
     def add_column(self, table, column, data=None):
         """Add a column to a table."""
@@ -190,6 +235,9 @@ class _ColumnAccessorMixin:
         self.logger.debug('adding column "%s" to table "%s"', col, table)
         self.execute(comm)
 
+        # add column to the cache
+        self._columns_cache[table].append(col)
+
         # adding the data to the table
         if data is not None:
             self.set_column(table, column, data)
@@ -207,6 +255,9 @@ class _ColumnAccessorMixin:
         self.logger.debug('deleting column "%s" from table "%s"',
                           column, table)
         self.execute(comm)
+
+        # remove column from the cache
+        self._columns_cache[table].remove(column)
 
     def set_column(self, table, column, data):
         """Set a column in the table."""
@@ -241,6 +292,17 @@ class _ColumnAccessorMixin:
 
 class _TableAccessorMixin:
     """Access and manipulate tables."""
+    _table_cache = None
+
+    @property
+    def table_names(self):
+        """Get the table names in the database."""
+        # use a cache for table names. Avoid querying the database every time
+        if self._table_cache is None:
+            comm = "SELECT name FROM sqlite_master WHERE type='table';"
+            self._table_cache = [i[0] for i in self.execute(comm)
+                                 if i[0] != 'sqlite_sequence']
+        return list(self._table_cache)
 
     def _check_table(self, table):
         """Check if the table exists in the database."""
@@ -268,6 +330,9 @@ class _TableAccessorMixin:
 
         self.execute(comm)
 
+        # add table to the cache
+        self._table_cache.append(table)
+
         if data is not None:
             self.add_rows(table, data, add_columns=True)
 
@@ -276,6 +341,9 @@ class _TableAccessorMixin:
         self._check_table(table)
         comm = f"DROP TABLE {table};"
         self.execute(comm)
+
+        # remove table from the cache
+        self._table_cache.remove(table)
 
     def get_table(self, table):
         """Get a table from the database."""
@@ -456,44 +524,10 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         """Get a copy of the database."""
         return self.__copy__(indexes=indexes)
 
-    def column_names(self, table, do_not_decode=False):
-        """Get the column names of the table."""
-        self._check_table(table)
-
-        # we get the column names from the cursor descriptor, so we need to
-        # select a line
-        comm = "SELECT * FROM "
-        comm += f"{table} LIMIT 1;"
-        self.execute(comm)
-
-        # put the names in this list. Useful to handle encoded names
-        columns = []
-        for i in self._cur.description:
-            if i[0].lower() == _ID_KEY.lower():
-                # skip id key. This should not be included in the list
-                continue
-            # handle encoded names
-            if i[0].startswith(_B32_COL_PREFIX) and \
-               self._allow_b32_colnames:
-                if not do_not_decode:
-                    columns.append(self._decode_b32(i[0]))
-                else:
-                    columns.append(i[0])  # do not lower the names here
-            else:
-                # always return a lowered normal name
-                columns.append(i[0].lower())
-        return columns
-
     @property
     def db(self):
         """Get the database name."""
         return str(self._db)
-
-    @property
-    def table_names(self):
-        """Get the table names in the database."""
-        comm = "SELECT name FROM sqlite_master WHERE type='table';"
-        return [i[0] for i in self.execute(comm) if i[0] != 'sqlite_sequence']
 
     def _get_indexes(self, table):
         """Get the indexes of the table."""
