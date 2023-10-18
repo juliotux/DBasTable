@@ -279,7 +279,7 @@ class SQLTable:
         s = f"{self.__class__.__name__} '{self.name}'"
         s += f" in database '{self.db}':"
         s += f"({len(self.column_names)} columns x {len(self)} rows)\n"
-        s += '\n'.join(self.as_table().__repr__().split('\n')[1:])
+        s += str(self.as_table())
         return s
 
 
@@ -351,7 +351,8 @@ class SQLColumn:
 
     def __repr__(self):
         """Get a string representation of the column."""
-        s = f"{self.__class__.__name__} {self._name} in table '{self._table}'"
+        s = f"{self.__class__.__name__} '{self._name}'"
+        s += f" in table '{self._table}'"
         s += f" ({len(self)} rows)"
         return s
 

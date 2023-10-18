@@ -398,8 +398,6 @@ class _TableAccessorMixin:
         comm = f"CREATE TABLE '{table}'"
         comm += f" (\n{_ID_KEY} INTEGER PRIMARY KEY AUTOINCREMENT"
 
-        if columns is not None and data is not None:
-            raise ValueError('cannot specify both columns and data.')
         if columns is not None:
             comm += ",\n"
             for i, name in enumerate(columns):

@@ -197,7 +197,7 @@ class TestSQLTable(TestCaseWithNumpyCompare):
 
         expect = "SQLTable 'test' in database ':memory:':"
         expect += "(2 columns x 10 rows)\n"
-        expect += '\n'.join(table.as_table().__repr__().split('\n')[1:])
+        expect += str(table.as_table())
         self.assertIsInstance(table, SQLTable)
         self.assertEqual(repr(table), expect)
 
@@ -574,7 +574,7 @@ class TestSQLColumn(TestCaseWithNumpyCompare):
         db = self.db
         table = db['test']
         column = table['a']
-        self.assertEqual(repr(column), "SQLColumn a in table 'test' (10 rows)")
+        self.assertEqual(repr(column), "SQLColumn 'a' in table 'test' (10 rows)")
 
     def test_column_contains(self):
         db = self.db
