@@ -1,5 +1,5 @@
 Non-Conformant Column Names
----------------------------
+===========================
 
 By default, any operation that interfaces with column names will only accept names that conform to the SQLite names standard. This means that column names must begin with a letter, and can only contain letters, numbers, and underscores. If you try to access a column that does not conform to this standard, you will get an error.
 
