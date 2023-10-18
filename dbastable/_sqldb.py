@@ -56,7 +56,7 @@ class _RowAccessorMixin:
 
     def _add_data_dict(self, table, data, add_columns=False,
                        skip_sanitize=False):
-        """Add data sotred in a dict to the table."""
+        """Add data sotred as columns in a dict to the table."""
         # sanitization of keys will be done in the methods below
         row_list = self._dict2row(table, row=data,
                                   add_columns=add_columns)
@@ -103,6 +103,10 @@ class _RowAccessorMixin:
             as column names.
         add_columns : bool (optional)
             If True, add missing columns to the table.
+        skip_sanitize: bool (optional)
+            If True, skip the sanitization of the data. Use this if the data
+            is already sanitized. Use with caution, as it may cause problems
+            with your data.
         """
         self._check_table(table)
         if isinstance(data, (list, tuple)):
@@ -132,7 +136,15 @@ class _RowAccessorMixin:
                         f'Not {type(data)}.')
 
     def delete_row(self, table, index):
-        """Delete a row from the table."""
+        """Delete a row from the table.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to delete the row.
+        index: int
+            Index of the row to delete.
+        """
         self._check_table(table)
         row = self._fix_row_index(index, len(self[table]))
         comm = f"DELETE FROM {table} WHERE {_ID_KEY}={row+1};"
@@ -140,13 +152,39 @@ class _RowAccessorMixin:
         self._update_indexes(table)
 
     def get_row(self, table, index):
-        """Get a row from the table."""
+        """Get a row from the table.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to get the row.
+        index: int
+            Index of the row to get.
+
+        Returns
+        -------
+        res : `~dbastable._sqldb.SQLRow`
+            The row object viewer.
+        """
         self._check_table(table)
         index = self._fix_row_index(index, len(self[table]))
         return SQLRow(self, table, index)
 
     def set_row(self, table, row, data):
-        """Set a row in the table."""
+        """Set a row in the table.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to set the row.
+        row: int
+            Index of the row to set.
+        data: dict, list or `~numpy.ndarray`
+            Data to set in the row. If dict, keys are column names,
+            if list, the order of the values is the same as the order of
+            the column names. If `~numpy.ndarray`, dtype names are interpreted
+            as column names.
+        """
         row = self._fix_row_index(row, self.count(table))
         colnames = self.column_names(table)
 
@@ -170,24 +208,35 @@ class _RowAccessorMixin:
 
 
 class _ColumnAccessorMixin:
-    """Access and manipulate columns."""
-    _columns_cache = None
+    """Access and manipulate columns.
+
+    Notes
+    -----
+    - the column cache will stored in the same variable as the table cache.
+    """
 
     def column_names(self, table, do_not_decode=False):
-        """Get the column names of the table."""
+        """Get the column names of the table.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to get the column names.
+        do_not_decode: bool (optional)
+            If True, do not decode Base32 encoded column names. This is useful
+            to get the real column names in the database. If False, the
+            decoded names are returned.
+        """
+        # this will initialize the cache if needed
         self._check_table(table)
 
-        # if cache is not initialized, initialize it
-        if self._columns_cache is None:
-            self._columns_cache = {}
-
         # if names are cached, use the cached names
-        if table in self._columns_cache.keys():
+        if self._table_cache[table] is not None:
             if do_not_decode:
-                return self._columns_cache[table]
+                return self._table_cache[table]
             return [self._decode_b32(i)
                     if i.startswith(_B32_COL_PREFIX) else i
-                    for i in self._columns_cache[table]]
+                    for i in self._table_cache[table]]
 
         # we get the column names from the cursor descriptor, so we need to
         # select a line
@@ -213,12 +262,22 @@ class _ColumnAccessorMixin:
                 columns.append(i[0].lower())
 
         # add columns to the cache
-        self._columns_cache[table] = columns
+        self._table_cache[table] = columns
 
         return columns
 
     def add_column(self, table, column, data=None):
-        """Add a column to a table."""
+        """Add a column to a table.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to add the column.
+        column: str
+            Name of the column to add.
+        data: list (optional)
+            List of values to add to the column. If None, no data is added.
+        """
         self._check_table(table)
 
         # check if the original column name is already in the table
@@ -236,14 +295,22 @@ class _ColumnAccessorMixin:
         self.execute(comm)
 
         # add column to the cache
-        self._columns_cache[table].append(col)
+        self._table_cache[table].append(col)
 
         # adding the data to the table
         if data is not None:
             self.set_column(table, column, data)
 
     def delete_column(self, table, column):
-        """Delete a column from a table."""
+        """Delete a column from a table.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to delete the column.
+        column: str
+            Name of the column to delete.
+        """
         self._check_table(table)
 
         if column in (_ID_KEY, 'table', 'default'):
@@ -257,7 +324,7 @@ class _ColumnAccessorMixin:
         self.execute(comm)
 
         # remove column from the cache
-        self._columns_cache[table].remove(column)
+        self._table_cache[table].remove(column)
 
     def set_column(self, table, column, data):
         """Set a column in the table."""
@@ -292,7 +359,7 @@ class _ColumnAccessorMixin:
 
 class _TableAccessorMixin:
     """Access and manipulate tables."""
-    _table_cache = None
+    _table_cache = None  # a dictionary to store table and column names
 
     @property
     def table_names(self):
@@ -300,9 +367,10 @@ class _TableAccessorMixin:
         # use a cache for table names. Avoid querying the database every time
         if self._table_cache is None:
             comm = "SELECT name FROM sqlite_master WHERE type='table';"
-            self._table_cache = [i[0] for i in self.execute(comm)
-                                 if i[0] != 'sqlite_sequence']
-        return list(self._table_cache)
+            tables = [i[0] for i in self.execute(comm)
+                      if i[0] != 'sqlite_sequence']
+            self._table_cache = {t: None for t in tables}
+        return list(self._table_cache.keys())
 
     def _check_table(self, table):
         """Check if the table exists in the database."""
@@ -310,7 +378,19 @@ class _TableAccessorMixin:
             raise KeyError(f'Table "{table}" does not exist.')
 
     def add_table(self, table, columns=None, data=None):
-        """Create a table in database."""
+        """Create a table in database.
+
+        Parameters
+        ----------
+        table : str
+            Name of the table to create.
+        columns : list (optional)
+            List of column names to create in the table. If None, no columns
+            are created.
+        data : list (optional)
+            List of rows to add to the table. If None, no rows are added.
+            Each row is a list of values in the same order as the columns.
+        """
         self.logger.debug('Initializing "%s" table.', table)
         if table in self.table_names:
             raise ValueError('table {table} already exists.')
@@ -318,8 +398,6 @@ class _TableAccessorMixin:
         comm = f"CREATE TABLE '{table}'"
         comm += f" (\n{_ID_KEY} INTEGER PRIMARY KEY AUTOINCREMENT"
 
-        if columns is not None and data is not None:
-            raise ValueError('cannot specify both columns and data.')
         if columns is not None:
             comm += ",\n"
             for i, name in enumerate(columns):
@@ -331,22 +409,39 @@ class _TableAccessorMixin:
         self.execute(comm)
 
         # add table to the cache
-        self._table_cache.append(table)
+        self._table_cache[table] = None
 
         if data is not None:
             self.add_rows(table, data, add_columns=True)
 
     def drop_table(self, table):
-        """Drop a table from the database."""
+        """Drop a table from the database.
+
+        Parameters
+        ----------
+        table : str
+            Name of the table to drop.
+        """
         self._check_table(table)
         comm = f"DROP TABLE {table};"
         self.execute(comm)
 
         # remove table from the cache
-        self._table_cache.remove(table)
+        del self._table_cache[table]
 
     def get_table(self, table):
-        """Get a table from the database."""
+        """Get a table from the database.
+
+        Parameters
+        ----------
+        table : str
+            Name of the table to get.
+
+        Returns
+        -------
+        res : `~dbastable._sqldb.SQLTable`
+            The table object viewer.
+        """
         self._check_table(table)
         return SQLTable(self, table)
 
@@ -355,13 +450,40 @@ class _ItemAccessorMixin:
     """Access and manipulate items."""
 
     def get_item(self, table, column, row):
-        """Get an item from the table."""
+        """Get an item from the table.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to get the item.
+        column: str
+            Name of the column to get the item.
+        row: int
+            Index of the row to get the item.
+
+        Returns
+        -------
+        res : object
+            The item value in the table.
+        """
         self._check_table(table)
         row = self._fix_row_index(row, len(self[table]))
         return self.get_column(table, column)[row]
 
     def set_item(self, table, column, row, value):
-        """Set a value in a cell."""
+        """Set a value in a cell.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to set the item.
+        column: str
+            Name of the column to set the item.
+        row: int
+            Index of the row to set the item.
+        value: object
+            Value to set in the cell.
+        """
         row = self._fix_row_index(row, self.count(table))
         col = self._get_column_name(table, column)
         value = self._sanitize_value(value)
@@ -406,13 +528,31 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         self.autocommit = autocommit
         self.logger = logger or logging.getLogger(__name__)
         self._allow_b32_colnames = allow_b32_colnames
+
+        # use the sqlite3 trace callback to log all sql commands
         self._con.set_trace_callback(lambda x:
                                      self.logger.debug('executing sql: %s',
                                                        x.replace('\n', ' ')))
 
     def execute(self, command, arguments=None):
-        """Execute a SQL command in the database."""
+        """Execute a SQL command in the database.
+
+        Parameters
+        ----------
+        command : str
+            SQL command to execute.
+        arguments : list or tuple (optional)
+            Arguments to pass to the command. A '?' in the command will be
+            replaced by the argument. If None, no arguments are passed.
+
+        Returns
+        -------
+        res : list
+            List of tuples with the results of the command.
+        """
         try:
+            # sqlite3 have problems with None arguments
+            # so we should not pass any arguments if None
             if arguments is None:
                 self._cur.execute(command)
             else:
@@ -427,7 +567,21 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         return res
 
     def executemany(self, command, arguments):
-        """Execute a SQL command in the database."""
+        """Execute a SQL command in the database using multiple entries.
+
+        Parameters
+        ----------
+        command : str
+            SQL command to execute.
+        arguments : list or tuple (optional)
+            Arguments to pass to the command. A '?' in the command will be
+            replaced by the argument. If None, no arguments are passed.
+
+        Returns
+        -------
+        res : list
+            List of tuples with the results of the command.
+        """
         try:
             self._cur.executemany(command, arguments)
             res = self._cur.fetchall()
@@ -444,7 +598,22 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         self._con.commit()
 
     def count(self, table, where=None):
-        """Get the number of rows in the table."""
+        """Get the number of rows in the table.
+
+        Parameters
+        ----------
+        table: str
+            Name of the table to count from.
+        where : dict (optional)
+            Dictionary of conditions to count rows. Keys are column names,
+            values are values to compare. All rows equal to the values will
+            be counted. If None, all rows are counted.
+
+        Returns
+        -------
+        res : int
+            Number of rows in the table.
+        """
         self._check_table(table)
         comm = "SELECT COUNT(*) FROM "
         comm += f"{table} "
@@ -460,16 +629,28 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
 
         Parameters
         ----------
+        table: str
+            Name of the table to select from.
         columns : list (optional)
             List of columns to select. If None, select all columns.
         where : dict (optional)
             Dictionary of conditions to select rows. Keys are column names,
-            values are values to compare. All rows equal to the values will
-            be selected. If None, all rows are selected.
+            values are values to compare. If it is a dict of values, all rows
+            equal to the values will be selected. If it is a dict of
+            `~dbastable.where.Where` objects, the conditions will be combined
+            with the AND operator. If None, all rows are selected.
         order : str (optional)
             Column name to order by.
         limit : int (optional)
             Number of rows to select.
+        offset : int (optional)
+            Number of rows to skip before selecting.
+
+        Returns
+        -------
+        res : list
+            List of tuples with the selected rows. Each row values will be
+            returned in a tuple in the same order as the columns.
         """
         self._check_table(table)
         if columns is None:
@@ -517,7 +698,14 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         return res
 
     def copy(self, indexes=None):
-        """Get a copy of the database."""
+        """Get a copy of the database.
+
+        Parameters
+        ----------
+        indexes : dict, optional
+            A dictionary of table names and the indexes of the rows in each
+            table to copy. If None, all rows are copied.
+        """
         return self.__copy__(indexes=indexes)
 
     @property
@@ -592,7 +780,8 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         Parameters
         ----------
         indexes : dict, optional
-            A dictionary of table names and their indexes to copy.
+            A dictionary of table names and  the indexes of the rows in each
+            table to copy. If None, all rows are copied.
 
         Returns
         -------

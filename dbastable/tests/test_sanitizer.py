@@ -96,6 +96,19 @@ class TestSanitizeColnamesB32(TestCaseWithNumpyCompare):
         sanit = s._sanitize_colnames(d)
         self.assertEqual(sanit, {k.lower(): v for k, v in d.items()})
 
+    def test_first_digit_error(self):
+        s = _Sanitizer(False)
+        with self.assertRaisesRegex(ValueError, 'Invalid'):
+            s._sanitize_colnames('2test')
+
+    def test_b32_padding(self):
+        s = _Sanitizer(True)
+        for i in range(64):
+            bs = '-'+'a'*i
+            encoded = s._encode_b32(bs)
+            decoded = s._decode_b32(encoded)
+            self.assertEqual(bs, decoded)
+
 
 class TestSanitizeGetColumnName(TestCaseWithNumpyCompare):
     def test_get_column_name(self):

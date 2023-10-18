@@ -10,11 +10,11 @@ needs_sphinx = '4.3.0'
 
 extensions = [
     'sphinx.ext.intersphinx',
+    'sphinx.ext.extlinks',
     'sphinx.ext.todo',
+    'sphinx.ext.mathjax',
     'sphinx_automodapi.automodapi',
-    'numpydoc',
-    'IPython.sphinxext.ipython_console_highlighting',
-    'IPython.sphinxext.ipython_directive'
+    'numpydoc'
 ]
 
 todo_include_todos = True
@@ -47,7 +47,7 @@ html_static_path = ['_static']
 htmlhelp_basename = 'dbastable'
 html_theme_options = {
   "show_prev_next": False,
-  "footer_items": ["copyright", "sphinx-version", "theme-version"]
+  "footer_items": ["copyright", "sphinx-version"]
 }
 
 autosummary_generate = True
@@ -55,5 +55,8 @@ autosummary_generate = True
 default_role = 'py:obj'
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None)
+    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
+    "matplotlib": ("https://matplotlib.org/", None),
+    "astropy": ('http://docs.astropy.org/en/latest/', None),
+    "pandas": ('https://pandas.pydata.org/pandas-docs/stable/', None)
 }

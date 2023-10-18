@@ -1,5 +1,6 @@
 import numpy as np
 import base64
+import math
 
 from ._def import _B32_COL_PREFIX, _ID_KEY
 
@@ -9,8 +10,8 @@ def _colname_to_b32_decode(string):
     # ensure remove the prefix
     string = string.lstrip(_B32_COL_PREFIX)
     # base32 need 8 chars padding
-    remainder = len(string) % 8
-    string += '='*(8-remainder)
+    pad = math.ceil(len(string) / 8) * 8 - len(string)
+    string += '='*pad
     return string
 
 
@@ -36,12 +37,13 @@ class _SanitizerMixin:
         # TODO: check for protected names
         if key.startswith(_B32_COL_PREFIX) or key == _ID_KEY:
             raise ValueError(f'{key} uses a protected name.')
-        if len([ch for ch in key if not ch.isalnum() and ch != '_']) != 0:
+        if len([ch for ch in key if not ch.isalnum() and ch != '_']) != 0 \
+           or key[0].isdigit():
             # if a name is invalid, encode it in base32 and add a prefix
             # if it is allowed
             if self._allow_b32_colnames:
                 return self._encode_b32(key)
-            raise ValueError(f'Invalid column name: {key}.')
+            raise ValueError(f'Invalid column name: {key}')
         return key.lower()
 
     def _sanitize_colnames(self, data):

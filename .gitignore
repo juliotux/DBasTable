@@ -1,5 +1,11 @@
 .vscode
 version.py
+# files that may be created during tests
+*.db
+
+# docs generated files
+docs/_build
+docs/api
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -24,7 +24,7 @@ class TestSQLRow(TestCaseWithNumpyCompare):
         self.assertEqual(row.table, 'test')
         self.assertEqual(row.index, 0)
         self.assertEqual(row.column_names, ['a', 'b'])
-        self.assertEqual(row.keys, ['a', 'b'])
+        self.assertEqual(row.keys(), ['a', 'b'])
         self.assertEqual(row.values, (10, 20))
         self.assertIsInstance(row.values, tuple)
         self.assertEqual(row.as_dict(), {'a': 10, 'b': 20})
@@ -197,7 +197,7 @@ class TestSQLTable(TestCaseWithNumpyCompare):
 
         expect = "SQLTable 'test' in database ':memory:':"
         expect += "(2 columns x 10 rows)\n"
-        expect += '\n'.join(table.as_table().__repr__().split('\n')[1:])
+        expect += str(table.as_table())
         self.assertIsInstance(table, SQLTable)
         self.assertEqual(repr(table), expect)
 
@@ -444,8 +444,9 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         self.assertEqual(table.column_names, ['a', 'b'])
         self.assertEqualArray(table.values, expect)
 
-        with self.assertRaises(KeyError):
-            table['c'] = np.arange(10, 20)
+        # if the column does not exists, it will be created
+        table['c'] = np.arange(10, 20)
+        self.assertEqualArray(table['c'].values, np.arange(10, 20))
 
     def test_table_setitem_tuple(self):
         db = self.db
@@ -462,8 +463,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         self.assertEqual(table.column_names, ['a', 'b'])
         self.assertEqualArray(table.values, expect)
 
-        with self.assertRaises(KeyError):
-            table[('c',)] = np.arange(10, 20)
+        # if the column does not exists, it will be created
+        table[('c',)] = np.arange(10, 20)
+        self.assertEqualArray(table['c'].values, np.arange(10, 20))
+
         with self.assertRaises(IndexError):
             table[(11,)] = np.arange(10, 20)
 
@@ -487,8 +490,10 @@ class TestSQLTable(TestCaseWithNumpyCompare):
         expect[[2, 7], 1] = -888
         self.assertEqualArray(table.values, expect)
 
-        with self.assertRaises(KeyError):
-            table[('c',)] = np.arange(10, 20)
+        # if the column does not exists, it will be created
+        table[('c',)] = np.arange(10, 20)
+        self.assertEqualArray(table['c'].values, np.arange(10, 20))
+
         with self.assertRaises(IndexError):
             table[(11,)] = np.arange(10, 20)
         with self.assertRaises(KeyError):
@@ -569,7 +574,7 @@ class TestSQLColumn(TestCaseWithNumpyCompare):
         db = self.db
         table = db['test']
         column = table['a']
-        self.assertEqual(repr(column), "SQLColumn a in table 'test' (10 rows)")
+        self.assertEqual(repr(column), "SQLColumn 'a' in table 'test' (10 rows)")
 
     def test_column_contains(self):
         db = self.db

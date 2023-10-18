@@ -1,6 +1,6 @@
 # DBasTable
 
-[![Unit Tests](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml/badge.svg)](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml) [![codecov](https://codecov.io/gh/juliotux/DBasTable/graph/badge.svg?token=r9kulm3ANZ)](https://codecov.io/gh/juliotux/DBasTable)
+[![Unit Tests](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml/badge.svg)](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml) [![codecov](https://codecov.io/gh/juliotux/DBasTable/graph/badge.svg?token=r9kulm3ANZ)](https://codecov.io/gh/juliotux/DBasTable) [![Documentation Status](https://readthedocs.org/projects/dbastable/badge/?version=latest)](https://dbastable.readthedocs.io/en/latest/?badge=latest)
 
 A simplier way to access SQLite tables, just like Numpy structured arrarys or Pandas dataframes.
 
@@ -29,3 +29,41 @@ As menioned above, we intended to perform only simple operations with this packa
 I'm not a SQL master, nor a digital security guru. I'm an astrophysicist that do some python. So, if you want to use it, use with care.
 
 # Install and Documentation
+
+## Installation
+
+The easiest way to install dbastable is via [pip](https://pip.pypa.io/en/stable/)
+
+```
+pip install dbastable
+```
+
+Alternatively, you can clone the repository and install it manually:
+
+```
+git clone
+cd dbastable
+pip install -U .
+```
+
+or
+
+```
+pip install -U git+https://github.com/juliotux/dbastable
+```
+
+Development version is also available in pip:
+
+```
+pip install -U --pre dbastable
+```
+
+
+## Documentation
+
+
+The documentation is available at https://dbastable.readthedocs.io/en/latest/
+
+# License
+
+`dbastable` is licensed under the terms of the [MIT license](https://opensource.org/license/mit/). See the file `LICENSE` for information on the history of this software, terms & conditions for usage, and a DISCLAIMER OF ALL WARRANTIES.
