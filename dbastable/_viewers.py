@@ -395,19 +395,17 @@ class SQLRow:
         """Get the index of the current row."""
         return self._row
 
-    @property
     def keys(self):
         """Get the keys of the current row."""
         return self.column_names
 
-    @property
     def items(self):
         """Get the items of the current row."""
         return zip(self.column_names, self.values)
 
     def as_dict(self):
         """Get the row as a dict."""
-        return dict(self.items)
+        return dict(self.items())
 
     def __getitem__(self, key):
         """Get a column from the row."""

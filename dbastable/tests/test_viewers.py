@@ -24,7 +24,7 @@ class TestSQLRow(TestCaseWithNumpyCompare):
         self.assertEqual(row.table, 'test')
         self.assertEqual(row.index, 0)
         self.assertEqual(row.column_names, ['a', 'b'])
-        self.assertEqual(row.keys, ['a', 'b'])
+        self.assertEqual(row.keys(), ['a', 'b'])
         self.assertEqual(row.values, (10, 20))
         self.assertIsInstance(row.values, tuple)
         self.assertEqual(row.as_dict(), {'a': 10, 'b': 20})
