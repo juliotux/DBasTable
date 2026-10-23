@@ -1,20 +1,16 @@
-import sqlite3 as sql
-import numpy as np
 import logging
+import sqlite3 as sql
 import weakref
 
-from ._viewers import (
-    SQLTable,
-    SQLRow,
-    SQLColumn
-)
-from ._sanitizer import _SanitizerMixin
-from .where import _WhereParserMixin, Where
-from ._def import _ID_KEY, _B32_COL_PREFIX
+import numpy as np
+
 from ._broadcaster import broadcast
+from ._def import _B32_COL_PREFIX, _ID_KEY
+from ._sanitizer import _SanitizerMixin
+from ._viewers import SQLColumn, SQLRow, SQLTable
+from .where import Where, _WhereParserMixin
 
-
-__all__ = ['SQLDatabase', 'SQLTable', 'SQLRow', 'SQLColumn']
+__all__ = ['SQLColumn', 'SQLDatabase', 'SQLRow', 'SQLTable']
 
 
 class _RowAccessorMixin:
@@ -35,7 +31,7 @@ class _RowAccessorMixin:
         existing = set(self.column_names(table))
         # avoid problems working only with non sanitized names
         # names will be sanitized in the add_column method
-        missing = [i.lower() for i in row.keys() if i.lower() not in existing]
+        missing = [i.lower() for i in row if i.lower() not in existing]
 
         # add missing columns if needed
         if add_columns:
@@ -49,7 +45,7 @@ class _RowAccessorMixin:
         cols = self.column_names(table, do_not_decode=True)
         values = [None]*len(cols)
         for i, c in enumerate(cols):
-            if c in row.keys():
+            if c in row:
                 values[i] = row[c]
             else:
                 values[i] = None
@@ -569,9 +565,9 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
             else:
                 self._cur.execute(command, arguments)
             res = self._cur.fetchall()
-        except sql.Error as e:
+        except sql.Error:
             self._con.rollback()
-            raise e
+            raise
 
         if self.autocommit:
             self.commit()
@@ -596,9 +592,9 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         try:
             self._cur.executemany(command, arguments)
             res = self._cur.fetchall()
-        except sql.Error as e:
+        except sql.Error:
             self._con.rollback()
-            raise e
+            raise
 
         if self.autocommit:
             self.commit()
@@ -768,7 +764,8 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
             return self.get_table(item)
         if isinstance(item, tuple):
             if not isinstance(item[0], str):
-                raise ValueError('first item must be the table name.')
+                # Preserve the public indexing API's existing exception type.
+                raise ValueError('first item must be the table name.')  # noqa: TRY004
             return self.get_table(item[0])[item[1:]]
         raise ValueError('items must be a string for table names, '
                          'or a tuple in the formats. '

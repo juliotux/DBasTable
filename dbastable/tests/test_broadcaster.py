@@ -1,6 +1,7 @@
+import numpy as np
+
 from dbastable._broadcaster import broadcast
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
-import numpy as np
 
 
 class Test_Broadcast(TestCaseWithNumpyCompare):
@@ -12,10 +13,8 @@ class Test_Broadcast(TestCaseWithNumpyCompare):
         bc = broadcast(a, b, c)
         iterator = iter(bc)
 
-        indx = 0
-        for i in range(10):
+        for indx in range(10):
             self.assertEqualArray(next(iterator), [a[indx], b[indx], c])
-            indx += 1
 
         with self.assertRaises(StopIteration):
             next(iterator)

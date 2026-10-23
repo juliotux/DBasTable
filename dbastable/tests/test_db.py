@@ -1,19 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# flake8: noqa: F403, F405
 
-from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase, Where
-import numpy as np
-from astropy.table import Table
-import tempfile
 import gc
 import logging
+import os
 import sqlite3
+import sys
+import tempfile
+import unittest
 import weakref
 from unittest.mock import Mock
-import sys
-import unittest
-import os
 
+import numpy as np
+from astropy.table import Table
+
+from dbastable import SQLColumn, SQLDatabase, SQLRow, SQLTable, Where
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
 
 
@@ -197,8 +197,8 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         db.add_table('test')
         db.add_column('test', 'a')
         db.add_column('test', 'b')
-        db.add_rows('test', dict(a=1, b=2))
-        db.add_rows('test', dict(a=[3, 5], b=[4, 6]))
+        db.add_rows('test', {'a': 1, 'b': 2})
+        db.add_rows('test', {'a': [3, 5], 'b': [4, 6]})
 
         self.assertEqual(db.get_column('test', 'a').values, [1, 3, 5])
         self.assertEqual(db.get_column('test', 'b').values, [2, 4, 6])
@@ -211,8 +211,8 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         for k in ['a', 'b', 'c', 'd', 'e']:
             db.add_column('test', k)
 
-        db.add_rows('test', dict(a=1, b='a', c=True, d=b'a', e=3.14))
-        db.add_rows('test', dict(a=2, b='b', c=False, d=b'b', e=2.71))
+        db.add_rows('test', {'a': 1, 'b': 'a', 'c': True, 'd': b'a', 'e': 3.14})
+        db.add_rows('test', {'a': 2, 'b': 'b', 'c': False, 'd': b'b', 'e': 2.71})
 
         self.assertEqual(db.get_column('test', 'a').values, [1, 2])
         self.assertEqual(db.get_column('test', 'b').values, ['a', 'b'])
@@ -236,11 +236,11 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         db.add_table('test')
         db.add_column('test', 'a')
         db.add_column('test', 'b')
-        db.add_rows('test', dict(a=1, b=2))
+        db.add_rows('test', {'a': 1, 'b': 2})
         with self.assertRaises(KeyError):
             # add a row with non-existing columns must raise error
-            db.add_rows('test', dict(a=3, c=4), add_columns=False)
-        db.add_rows('test', dict(a=5, d=6), add_columns=True)
+            db.add_rows('test', {'a': 3, 'c': 4}, add_columns=False)
+        db.add_rows('test', {'a': 5, 'd': 6}, add_columns=True)
 
         self.assertEqual(db.get_column('test', 'a').values, [1, 5])
         self.assertEqual(db.get_column('test', 'b').values, [2, None])
@@ -279,11 +279,11 @@ class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):
         db.add_table('test')
         db.add_column('test', 'a')
         db.add_column('test', 'b')
-        db['test'].add_rows(dict(a=1, b=2))
+        db['test'].add_rows({'a': 1, 'b': 2})
         with self.assertRaises(KeyError):
             # add a row with non-existing columns must raise error
-            db['test'].add_rows(dict(a=3, c=4), add_columns=False)
-        db['test'].add_rows(dict(a=5, d=6), add_columns=True)
+            db['test'].add_rows({'a': 3, 'c': 4}, add_columns=False)
+        db['test'].add_rows({'a': 5, 'd': 6}, add_columns=True)
 
         self.assertEqual(db.get_column('test', 'a').values, [1, 5])
         self.assertEqual(db.get_column('test', 'b').values, [2, None])

@@ -1,6 +1,7 @@
-import numpy as np
 import base64
 import math
+
+import numpy as np
 
 from ._def import _B32_COL_PREFIX, _ID_KEY
 

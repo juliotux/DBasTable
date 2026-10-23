@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# flake8: noqa: F403, F405
 
 import numpy as np
-from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase, Where
 from astropy.table import Table
 
+from dbastable import SQLColumn, SQLDatabase, SQLRow, SQLTable, Where
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
 
 

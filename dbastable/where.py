@@ -1,7 +1,6 @@
 """Classes to hande ``WHERE`` statements of `sqlite3`."""
 import numpy as np
 
-
 allowed_ops = ["=", "!=", ">", "<", ">=", "<=", "LIKE", "IN", "NOT IN", "IS",
                "IS NOT", "BETWEEN", "NOT BETWEEN"]
 

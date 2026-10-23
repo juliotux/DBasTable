@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# flake8: noqa: F403, F405
 
 from dbastable._sanitizer import _SanitizerMixin
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
@@ -21,7 +20,7 @@ class TestSanitizeColnames(TestCaseWithNumpyCompare):
         s = _Sanitizer(False)
         for i in ['test-2', 'test!2', 'test@2', 'test#2', 'test$2',
                   'test&2', 'test*2', 'test(2)', 'test)2', 'test[2]', 'test]2',
-                  'test{2}', 'test}2', 'test|2', 'test\\2', 'test^2', 'test~2'
+                  'test{2}', 'test}2', 'test|2', 'test\\2', 'test^2', 'test~2',
                   'test"2', 'test\'2', 'test`2', 'test<2', 'test>2', 'test=2',
                   'test,2', 'test;2', 'test:2', 'test?2', 'test/2']:
             with self.assertRaises(ValueError):
@@ -34,7 +33,7 @@ class TestSanitizeColnames(TestCaseWithNumpyCompare):
         s = _Sanitizer(False)
         i = ['test-2', 'test!2', 'test@2', 'test#2', 'test$2',
              'test&2', 'test*2', 'test(2)', 'test)2', 'test[2]', 'test]2',
-             'test{2}', 'test}2', 'test|2', 'test\\2', 'test^2', 'test~2'
+             'test{2}', 'test}2', 'test|2', 'test\\2', 'test^2', 'test~2',
              'test"2', 'test\'2', 'test`2', 'test<2', 'test>2', 'test=2',
              'test,2', 'test;2', 'test:2', 'test?2', 'test/2']
         with self.assertRaises(ValueError):

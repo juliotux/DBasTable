@@ -271,8 +271,7 @@ class SQLTable:
 
     def __iter__(self):
         """Iterate over the rows of the table."""
-        for i in self.select():
-            yield i
+        yield from self.select()
 
     def __repr__(self):
         """Get a string representation of the table."""
@@ -342,8 +341,7 @@ class SQLColumn:
 
     def __iter__(self):
         """Iterate over the column."""
-        for i in self.values:
-            yield i
+        yield from self.values
 
     def __contains__(self, item):
         """Check if the column contains a given value."""
@@ -431,8 +429,7 @@ class SQLRow:
 
     def __iter__(self):
         """Iterate over the row."""
-        for i in self.values:
-            yield i
+        yield from self.values
 
     def __contains__(self, item):
         """Check if the row contains a given value."""

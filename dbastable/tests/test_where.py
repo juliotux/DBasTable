@@ -1,9 +1,9 @@
 import unittest
-from dbastable.where import Where, _WhereParserMixin
-from dbastable._sanitizer import _SanitizerMixin
-from dbastable import SQLDatabase
 
+from dbastable import SQLDatabase
+from dbastable._sanitizer import _SanitizerMixin
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
+from dbastable.where import Where, _WhereParserMixin
 
 
 class _WhereParser(_WhereParserMixin, _SanitizerMixin):

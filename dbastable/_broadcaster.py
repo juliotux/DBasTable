@@ -42,8 +42,7 @@ class broadcast:
 
     def __iter__(self):
         """Return the iterator."""
-        for i in zip(*self.iters):
-            yield i
+        yield from zip(*self.iters)
 
     @staticmethod
     def _get_length(value):
