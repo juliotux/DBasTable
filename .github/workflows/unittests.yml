@@ -3,10 +3,10 @@ name: Unit Tests
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '17 7 * * 1'  # Monday at 07:17 UTC.
+    - cron: '17 7 * * 1'
 
 concurrency:
   group: unittests-${{ github.ref }}
@@ -19,27 +19,44 @@ jobs:
   tests:
     name: ${{ matrix.os }} - Python ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
-    if: "!(contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[ci skip]'))"
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+        # Check Python compatibility on Linux and platform behavior on 3.14.
+        include:
+          - os: macos-latest
+            python-version: '3.14'
+          - os: windows-latest
+            python-version: '3.14'
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: '**/pyproject.toml'
-    - name: Install base dependencies
-      run: |
-        python -m pip install --upgrade --quiet pip setuptools
-    - name: Install package dependencies
-      run: pip install -U .[test]
-    - name: Run tests
-      run: python -m unittest discover -p 'test_*.py' -v
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install test dependencies
+        run: python -m pip install '.[test]'
+      - name: Run unit tests
+        if: matrix.os != 'ubuntu-latest' || matrix.python-version != '3.14'
+        run: python -m unittest discover -p 'test_*.py' -v
+      # Reuse one matrix run for coverage instead of repeating the suite.
+      - name: Run unit tests with coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        run: python -m coverage run --source=dbastable --omit='dbastable/tests/*,dbastable/version.py' -m unittest discover -p 'test_*.py' -v
+      - name: Write coverage report
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        run: python -m coverage xml
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        uses: codecov/codecov-action@v7
+        with:
+          files: coverage.xml
+          disable_search: true
+          token: ${{ secrets.CODECOV_TOKEN }}
