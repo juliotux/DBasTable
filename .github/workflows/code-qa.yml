@@ -1,25 +1,32 @@
-name: Quality Analyzes
+name: Code Quality
 
-on: [push]
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  build:
-    name: 'Code Quality (Ruff)'
+  lint:
+    name: Ruff
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10"]
+    timeout-minutes: 5
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install ruff
-      # or specify more flags!
-    - name: Check with Ruff
-      # Let Ruff discover files so gitignored build outputs stay excluded.
-      run: ruff check dbastable/
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install Ruff
+        run: python -m pip install ruff
+      - name: Check source and tests
+        # Directory discovery excludes gitignored generated version metadata.
+        run: ruff check dbastable/

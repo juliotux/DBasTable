@@ -3,10 +3,10 @@ name: Documentation Building
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '17 7 * * 1'  # Monday at 07:17 UTC.
+    - cron: '27 7 * * 1'
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -16,50 +16,24 @@ permissions:
   contents: read
 
 jobs:
-  tests:
-    name: Docs Building
+  docs:
+    name: Build and test documentation
     runs-on: ubuntu-latest
-    if: "!(contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[ci skip]'))"
-
+    timeout-minutes: 15
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-        cache: pip
-        cache-dependency-path: '**/pyproject.toml'
-    - name: Install base dependencies
-      run: pip install -U -q pip setuptools
-    - name: Install package dependencies
-      run: pip install -U -q .[docs]
-    - name: Build with Sphinx
-      run: |
-        cd docs
-        make html
-
-  doctest:
-    name: Documentation Testing
-    runs-on: ubuntu-latest
-    if: "!(contains(github.event.head_commit.message, '[skip ci]') || contains(github.event.head_commit.message, '[ci skip]'))"
-
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-        cache: pip
-        cache-dependency-path: '**/pyproject.toml'
-    - name: Install base dependencies
-      run: pip install -U -q pip setuptools
-    - name: Install pytest
-      run: pip install -U -q pytest pytest-doctestplus
-    - name: Install package dependencies
-      run: pip install -U .[docs] .[test]
-    - name: Run pytest on docs
-      run: pytest --doctest-rst --doctest-plus docs
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install documentation and test dependencies
+        run: python -m pip install '.[docs,test]' pytest pytest-doctestplus
+      # Examples create SQLite files; keep them out of the source tree.
+      - name: Test documentation examples
+        working-directory: ${{ runner.temp }}
+        run: python -m pytest --doctest-rst --doctest-plus "$GITHUB_WORKSPACE/docs"
+      - name: Build HTML documentation
+        run: python -m sphinx -b html docs docs/_build/html
