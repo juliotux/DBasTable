@@ -9,7 +9,7 @@ on:
     - cron: '27 7 * * 1'
 
 concurrency:
-  group: docs-${{ github.ref }}
+  group: ci-docs-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

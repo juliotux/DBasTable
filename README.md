@@ -1,6 +1,6 @@
 # DBasTable
 
-[![Unit Tests](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml/badge.svg)](https://github.com/juliotux/DBasTable/actions/workflows/unittests.yml) [![codecov](https://codecov.io/gh/juliotux/DBasTable/graph/badge.svg?token=r9kulm3ANZ)](https://codecov.io/gh/juliotux/DBasTable) [![Documentation Status](https://readthedocs.org/projects/dbastable/badge/?version=latest)](https://dbastable.readthedocs.io/en/latest/?badge=latest)
+[![Unit Tests](https://github.com/juliotux/DBasTable/actions/workflows/ci-tests.yml/badge.svg)](https://github.com/juliotux/DBasTable/actions/workflows/ci-tests.yml) [![codecov](https://codecov.io/gh/juliotux/DBasTable/graph/badge.svg?token=r9kulm3ANZ)](https://codecov.io/gh/juliotux/DBasTable) [![Documentation Status](https://readthedocs.org/projects/dbastable/badge/?version=latest)](https://dbastable.readthedocs.io/en/latest/?badge=latest)
 
 A simplier way to access SQLite tables, just like Numpy structured arrarys or Pandas dataframes.
 
