@@ -1,4 +1,4 @@
-# This workflow will upload a Python Package using Twine when a release is created
+# Build and publish Python packages when main is updated.
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
 
 # This workflow uses actions that are not certified by GitHub.
@@ -21,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v1
+    - name: Set up Python 3.14
+      uses: actions/setup-python@v7
       with:
-        python-version: 3.9
+        python-version: '3.14'
     - name: Install pypa/build
       run: >-
         python -m
