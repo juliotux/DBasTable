@@ -5,11 +5,80 @@ from dbastable import SQLColumn, SQLRow, SQLTable, SQLDatabase, Where
 import numpy as np
 from astropy.table import Table
 import tempfile
+import gc
+import logging
+import sqlite3
+import weakref
+from unittest.mock import Mock
 import sys
 import unittest
 import os
 
 from dbastable.tests.mixins import TestCaseWithNumpyCompare
+
+
+class TestSQLDatabaseLifetime(unittest.TestCase):
+    def setUp(self):
+        was_enabled = gc.isenabled()
+        gc.disable()
+        if was_enabled:
+            self.addCleanup(gc.enable)
+        self.addCleanup(gc.collect)
+
+    def test_last_owner_closes_file_without_collecting_cycles(self):
+        with tempfile.TemporaryDirectory() as directory:
+            filename = os.path.join(directory, 'database.db')
+            db = SQLDatabase(filename)
+            db.add_table('sources', columns=['flux'], data=[(10,)])
+            reference = weakref.ref(db)
+            connection = db._con
+            try:
+                del db
+                self.assertIsNone(reference())
+                with self.assertRaises(sqlite3.ProgrammingError):
+                    connection.execute('SELECT 1')
+                # Windows permits removal only after the connection is closed.
+                os.remove(filename)
+                self.assertFalse(os.path.exists(filename))
+            finally:
+                connection.close()
+
+    def test_view_retains_database_until_released(self):
+        cases = [('sources', [(10,)]),
+                 (('sources', 0), (10,)),
+                 (('sources', 'flux'), [10])]
+        for key, expected in cases:
+            with self.subTest(key=key):
+                db = SQLDatabase(':memory:')
+                db.add_table('sources', columns=['flux'], data=[(10,)])
+                view = db[key]
+                reference = weakref.ref(db)
+                connection = db._con
+                try:
+                    del db
+                    self.assertIsNotNone(reference())
+                    self.assertEqual(view.values, expected)
+                    del view
+                    self.assertIsNone(reference())
+                    with self.assertRaises(sqlite3.ProgrammingError):
+                        connection.execute('SELECT 1')
+                finally:
+                    connection.close()
+
+    def test_trace_uses_current_logger_and_normalizes_newlines(self):
+        first_logger = Mock(spec=logging.Logger)
+        second_logger = Mock(spec=logging.Logger)
+        db = SQLDatabase(':memory:', logger=first_logger)
+        try:
+            db.execute('SELECT\n1')
+            first_logger.debug.assert_called_with('executing sql: %s', 'SELECT 1')
+            first_logger.reset_mock()
+            db.logger = second_logger
+            db.execute('SELECT\n2')
+            second_logger.debug.assert_called_with('executing sql: %s', 'SELECT 2')
+            first_logger.debug.assert_not_called()
+        finally:
+            db._con.close()
 
 
 class TestSQLDatabaseCreationModify(TestCaseWithNumpyCompare):

@@ -1,6 +1,7 @@
 import sqlite3 as sql
 import numpy as np
 import logging
+import weakref
 
 from ._viewers import (
     SQLTable,
@@ -518,6 +519,9 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
     - '__id__' is only for internal indexing. It is ignored on returns.
     - '__b32__' will be used as prefix for base32 encoded column names. So
       it is not allowed to use this prefix in column names.
+    - Table, row and column viewers retain their parent database. Release all
+      owners before removing its file, especially on Windows. SQL tracing does
+      not extend the database object's lifetime.
     """
 
     def __init__(self, db=None, autocommit=True, logger=None,
@@ -529,10 +533,17 @@ class SQLDatabase(_WhereParserMixin, _SanitizerMixin,
         self.logger = logger or logging.getLogger(__name__)
         self._allow_b32_colnames = allow_b32_colnames
 
-        # use the sqlite3 trace callback to log all sql commands
-        self._con.set_trace_callback(lambda x:
-                                     self.logger.debug('executing sql: %s',
-                                                       x.replace('\n', ' ')))
+        # SQLite retains this callback. A strong reference back to self would
+        # keep the database and its file handle alive until cyclic collection.
+        database = weakref.ref(self)
+
+        def trace(command):
+            owner = database()
+            if owner is not None:
+                owner.logger.debug('executing sql: %s',
+                                   command.replace('\n', ' '))
+
+        self._con.set_trace_callback(trace)
 
     def execute(self, command, arguments=None):
         """Execute a SQL command in the database.
