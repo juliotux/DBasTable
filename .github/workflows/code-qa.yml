@@ -21,4 +21,5 @@ jobs:
         pip install ruff
       # or specify more flags!
     - name: Check with Ruff
-      run: ruff check dbastable/*
+      # Let Ruff discover files so gitignored build outputs stay excluded.
+      run: ruff check dbastable/
